@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id            String             @id @default(cuid())
+  name          String?
+  email         String             @unique
+  password      String?
+  role          Role               @default(USER)
+  currentStreak Int                @default(0)
+  longestStreak Int                @default(0)
+  lastLoginDate DateTime?
+  favorites     Favorite[]
+  completions   PrayerCompletion[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @default(now()) @updatedAt
+
+  @@index([email])
+}
+
+model Category {
+  id         String      @id @default(cuid())
+  name       String
+  slug       String      @unique
+  icon       String      @default("Heart")
+  sortOrder  Int         @default(0)
+  situations Situation[]
+  prayers    Prayer[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @default(now()) @updatedAt
+
+  @@index([sortOrder])
+}
+
+model Situation {
+  id         String   @id @default(cuid())
+  name       String
+  slug       String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId String
+  prayers    Prayer[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@unique([categoryId, slug])
+  @@index([categoryId])
+}
+
+model Prayer {
+  id          String             @id @default(cuid())
+  title       String
+  slug        String             @unique
+  body        String             @db.Text
+  description String?            @db.Text
+  category    Category           @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId  String
+  situation   Situation?         @relation(fields: [situationId], references: [id], onDelete: SetNull)
+  situationId String?
+  isPublished Boolean            @default(true)
+  isFeatured  Boolean            @default(false)
+  favorites   Favorite[]
+  completions PrayerCompletion[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @default(now()) @updatedAt
+
+  @@index([categoryId, isPublished])
+  @@index([situationId, isPublished])
+  @@index([isFeatured, isPublished])
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  prayer    Prayer   @relation(fields: [prayerId], references: [id], onDelete: Cascade)
+  prayerId  String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, prayerId])
+  @@index([userId])
+}
+
+model PrayerCompletion {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  prayer      Prayer   @relation(fields: [prayerId], references: [id], onDelete: Cascade)
+  prayerId    String
+  completedAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([prayerId])
+}

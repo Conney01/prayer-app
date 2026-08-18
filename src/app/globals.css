@@ -1,0 +1,45 @@
+﻿@import "tailwindcss";
+
+:root {
+  --background: #fdf0ec;
+  --foreground: #1f3a28;
+  --primary: #2d5a3d;
+  --primary-foreground: #ffffff;
+  --secondary: #d4907a;
+  --secondary-foreground: #ffffff;
+  --muted-foreground: #6b635e;
+  --border: #eedad2;
+  --card: #faf3f0;
+  --card-foreground: #1f3a28;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-jost), sans-serif;
+}
+
+.font-serif {
+  font-family: var(--font-cormorant), Georgia, serif;
+}
+
+.font-sans {
+  font-family: var(--font-jost), sans-serif;
+}
+/* Hide Next.js Development Indicator */
+nextjs-portal,
+#__next-build-watcher,
+[data-nextjs-toast] {
+  display: none !important;
+}
+
+/* Suppress all Next.js dev indicators and overlays */
+nextjs-portal,
+#__next-build-watcher,
+[data-nextjs-toast],
+[data-nextjs-dialog-overlay],
+[data-nextjs-portal] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
