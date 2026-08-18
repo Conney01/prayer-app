@@ -63,15 +63,9 @@ export const metadata: Metadata = {
     images: [
       {
         url: `${APP_URL}/og.jpg`,
-        width: 1200,
-        height: 630,
-        alt: "Sanctuary — Sacred Daily Christian Prayers",
-      },
-      {
-        url: `${APP_URL}/icon.jpg`,
-        width: 512,
-        height: 512,
-        alt: "Sanctuary Emblem",
+        width: 1024,
+        height: 1024,
+        alt: "Sanctuary — Sacred Christian Prayers",
       },
     ],
   },
