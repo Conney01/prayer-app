@@ -20,10 +20,12 @@ declare module "next-auth" {
 }
 
 export const authConfig = {
+  trustHost: true,
   providers: [
     GoogleProvider({
       clientId: process.env.AUTH_GOOGLE_ID ?? process.env.GOOGLE_CLIENT_ID ?? "",
       clientSecret: process.env.AUTH_GOOGLE_SECRET ?? process.env.GOOGLE_CLIENT_SECRET ?? "",
+      allowDangerousEmailAccountLinking: true,
     }),
     CredentialsProvider({
       name: "credentials",
@@ -64,6 +66,34 @@ export const authConfig = {
     }),
   ],
   callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider === "google" && user.email) {
+        const normalizedEmail = user.email.trim().toLowerCase();
+        const existingUser = await db.user.findUnique({
+          where: { email: normalizedEmail },
+        });
+
+        if (!existingUser) {
+          const newUser = await db.user.create({
+            data: {
+              email: normalizedEmail,
+              name: user.name ?? "Sanctuary Seeker",
+              role: "USER",
+              currentStreak: 1,
+              longestStreak: 1,
+            },
+          });
+          user.id = newUser.id;
+          user.role = newUser.role;
+          user.currentStreak = newUser.currentStreak;
+        } else {
+          user.id = existingUser.id;
+          user.role = existingUser.role;
+          user.currentStreak = existingUser.currentStreak;
+        }
+      }
+      return true;
+    },
     jwt({ token, user }) {
       if (user) {
         token.id = user.id;
