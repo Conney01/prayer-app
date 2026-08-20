@@ -52,7 +52,6 @@ export async function createCategoryAction(name: string) {
       data: {
         name: trimmed,
         slug,
-        description: `Curated prayers for ${trimmed}`,
       },
       include: {
         situations: true,
