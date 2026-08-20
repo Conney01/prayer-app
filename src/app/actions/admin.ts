@@ -208,20 +208,24 @@ export async function createPrayerAction(formData: {
       });
     }
 
+    const scriptureVal = formData.scriptureReference?.trim() || formData.scriptureText?.trim() || null;
+
+    const dataObj: any = {
+      title: formData.title.trim(),
+      slug: finalSlug,
+      body: formData.body.trim(),
+      isPublished: true,
+      isFeatured: Boolean(formData.isFeatured),
+      categoryId: formData.categoryId,
+      situationId: situationRecord.id,
+    };
+
+    if (scriptureVal) {
+      dataObj["scripture"] = scriptureVal;
+    }
+
     const prayer = await db.prayer.create({
-      data: {
-        title: formData.title.trim(),
-        slug: finalSlug,
-        body: formData.body.trim(),
-        scriptureReference: formData.scriptureReference?.trim() || null,
-        scriptureText: formData.scriptureText?.trim() || null,
-        isPublished: true,
-        isFeatured: Boolean(formData.isFeatured),
-        categoryId: formData.categoryId,
-        situation: {
-          connect: { id: situationRecord.id },
-        },
-      },
+      data: dataObj,
     });
 
     revalidatePath("/admin");
@@ -270,20 +274,24 @@ export async function updatePrayerAction(
       });
     }
 
+    const scriptureVal = formData.scriptureReference?.trim() || formData.scriptureText?.trim() || null;
+
+    const dataObj: any = {
+      title: formData.title.trim(),
+      categoryId: formData.categoryId,
+      situationId: situationRecord.id,
+      body: formData.body.trim(),
+      isFeatured: Boolean(formData.isFeatured),
+      isPublished: formData.isPublished !== undefined ? Boolean(formData.isPublished) : true,
+    };
+
+    if (scriptureVal) {
+      dataObj["scripture"] = scriptureVal;
+    }
+
     const prayer = await db.prayer.update({
       where: { id: prayerId },
-      data: {
-        title: formData.title.trim(),
-        categoryId: formData.categoryId,
-        situation: {
-          connect: { id: situationRecord.id },
-        },
-        body: formData.body.trim(),
-        scriptureReference: formData.scriptureReference?.trim() || null,
-        scriptureText: formData.scriptureText?.trim() || null,
-        isFeatured: Boolean(formData.isFeatured),
-        isPublished: formData.isPublished !== undefined ? Boolean(formData.isPublished) : true,
-      },
+      data: dataObj,
     });
 
     revalidatePath("/admin");
