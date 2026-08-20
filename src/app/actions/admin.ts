@@ -78,6 +78,10 @@ export async function createCategoryAction(name: string) {
 
 export async function deleteCategoryAction(categoryId: string) {
   try {
+    await db.situation.deleteMany({
+      where: { categoryId },
+    });
+
     await db.category.delete({
       where: { id: categoryId },
     });
@@ -181,6 +185,29 @@ export async function createPrayerAction(formData: {
     const existing = await db.prayer.findUnique({ where: { slug } });
     const finalSlug = existing ? `${slug}-${Date.now().toString().slice(-4)}` : slug;
 
+    let situationRecord = await db.situation.findFirst({
+      where: {
+        categoryId: formData.categoryId,
+        name: formData.situation.trim(),
+      },
+    });
+
+    if (!situationRecord) {
+      const sitSlug = formData.situation
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)+/g, "");
+
+      situationRecord = await db.situation.create({
+        data: {
+          name: formData.situation.trim(),
+          slug: `${sitSlug}-${Date.now().toString().slice(-4)}`,
+          categoryId: formData.categoryId,
+        },
+      });
+    }
+
     const prayer = await db.prayer.create({
       data: {
         title: formData.title.trim(),
@@ -188,10 +215,12 @@ export async function createPrayerAction(formData: {
         body: formData.body.trim(),
         scriptureReference: formData.scriptureReference?.trim() || null,
         scriptureText: formData.scriptureText?.trim() || null,
-        situation: formData.situation.trim(),
         isPublished: true,
         isFeatured: Boolean(formData.isFeatured),
         categoryId: formData.categoryId,
+        situation: {
+          connect: { id: situationRecord.id },
+        },
       },
     });
 
@@ -218,12 +247,37 @@ export async function updatePrayerAction(
   }
 ) {
   try {
+    let situationRecord = await db.situation.findFirst({
+      where: {
+        categoryId: formData.categoryId,
+        name: formData.situation.trim(),
+      },
+    });
+
+    if (!situationRecord) {
+      const sitSlug = formData.situation
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)+/g, "");
+
+      situationRecord = await db.situation.create({
+        data: {
+          name: formData.situation.trim(),
+          slug: `${sitSlug}-${Date.now().toString().slice(-4)}`,
+          categoryId: formData.categoryId,
+        },
+      });
+    }
+
     const prayer = await db.prayer.update({
       where: { id: prayerId },
       data: {
         title: formData.title.trim(),
         categoryId: formData.categoryId,
-        situation: formData.situation.trim(),
+        situation: {
+          connect: { id: situationRecord.id },
+        },
         body: formData.body.trim(),
         scriptureReference: formData.scriptureReference?.trim() || null,
         scriptureText: formData.scriptureText?.trim() || null,
