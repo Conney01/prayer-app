@@ -53,11 +53,8 @@ export function NewPrayerForm({ initialCategories }: { initialCategories: Catego
   const activeCategory = categories.find((c) => c.id === selectedCategoryId);
   const currentSituations = activeCategory?.situations ?? [];
 
-  // Automatically set first situation if none selected
-  const activeSituation = selectedSituation || currentSituations[0] || "";
-
-  // Helper: auto-generate title based on situation + count
-  const prayerTitle = activeSituation ? `${activeSituation}` : "Sacred Prayer";
+  const activeSituation = selectedSituation || (currentSituations[0] ?? "");
+  const prayerTitle = activeSituation ? activeSituation : "Sacred Prayer";
 
   const handleSavePrayer = (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,7 +139,7 @@ export function NewPrayerForm({ initialCategories }: { initialCategories: Catego
       if (res.success && res.situations) {
         setCategories((prev) =>
           prev.map((cat) =>
-            cat.id === catId ? { ...cat, situations: res.situations as string[] } : cat
+            cat.id === catId ? { ...cat, situations: res.situations } : cat
           )
         );
         setSelectedSituation(nameToAdd.trim());
@@ -161,7 +158,7 @@ export function NewPrayerForm({ initialCategories }: { initialCategories: Catego
       if (res.success && res.situations) {
         setCategories((prev) =>
           prev.map((cat) =>
-            cat.id === catId ? { ...cat, situations: res.situations as string[] } : cat
+            cat.id === catId ? { ...cat, situations: res.situations } : cat
           )
         );
         if (selectedSituation === situationName) {
@@ -176,7 +173,6 @@ export function NewPrayerForm({ initialCategories }: { initialCategories: Catego
   return (
     <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] p-4 sm:p-8">
       <div className="mx-auto max-w-4xl space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-[#eedad2] pb-4">
           <Link
             href="/admin"
@@ -200,7 +196,6 @@ export function NewPrayerForm({ initialCategories }: { initialCategories: Catego
           </div>
         </div>
 
-        {/* Success Banner */}
         {lastSavedTitle && (
           <div className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm animate-in fade-in">
             <div className="flex items-center space-x-3">
@@ -221,10 +216,8 @@ export function NewPrayerForm({ initialCategories }: { initialCategories: Catego
           </div>
         )}
 
-        {/* Main Form Card */}
         <form onSubmit={handleSavePrayer} className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 space-y-6 shadow-sm">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* 1. Category Field */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#1f3a28]">
@@ -249,13 +242,12 @@ export function NewPrayerForm({ initialCategories }: { initialCategories: Catego
               >
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
-                    {cat.name} ({cat.situations?.length || 0} situations)
+                    {cat.name} ({cat.situations?.length ?? 0} situations)
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* 2. Situation Field */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#1f3a28]">
@@ -322,7 +314,6 @@ export function NewPrayerForm({ initialCategories }: { initialCategories: Catego
             </div>
           </div>
 
-          {/* 3. Prayer Text */}
           <div className="space-y-2">
             <label className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#1f3a28]">
               3. Prayer Text *
@@ -337,7 +328,6 @@ export function NewPrayerForm({ initialCategories }: { initialCategories: Catego
             />
           </div>
 
-          {/* 4. Optional Scripture */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             <div className="space-y-1.5">
               <label className="text-[10px] font-semibold uppercase tracking-wider text-[#6b635e]">
@@ -366,7 +356,6 @@ export function NewPrayerForm({ initialCategories }: { initialCategories: Catego
             </div>
           </div>
 
-          {/* Featured Toggle & Submit Button */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-t border-[#eedad2] pt-6">
             <label className="inline-flex items-center space-x-2.5 cursor-pointer">
               <input
@@ -400,7 +389,6 @@ export function NewPrayerForm({ initialCategories }: { initialCategories: Catego
           </div>
         </form>
 
-        {/* Categories & Situations Manager / Duplicates Cleaner Modal */}
         {isManagerOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm animate-in fade-in">
             <div className="relative max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 shadow-2xl space-y-6">
@@ -420,7 +408,6 @@ export function NewPrayerForm({ initialCategories }: { initialCategories: Catego
                 </button>
               </div>
 
-              {/* Add New Category Form */}
               <div className="rounded-xl border border-[#eedad2] bg-white p-4 space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[#1f3a28]">
                   + Add New Category
@@ -445,7 +432,6 @@ export function NewPrayerForm({ initialCategories }: { initialCategories: Catego
                 </div>
               </div>
 
-              {/* Situations Breakdown per Category */}
               <div className="space-y-4">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-[#1f3a28]">
                   Categories &amp; Situations List
@@ -471,7 +457,6 @@ export function NewPrayerForm({ initialCategories }: { initialCategories: Catego
                         </button>
                       </div>
 
-                      {/* Situations Badges */}
                       <div className="flex flex-wrap gap-2 pt-1">
                         {cat.situations && cat.situations.length > 0 ? (
                           cat.situations.map((sit, sitIdx) => (
@@ -495,7 +480,6 @@ export function NewPrayerForm({ initialCategories }: { initialCategories: Catego
                         )}
                       </div>
 
-                      {/* Inline Add Situation to this specific category */}
                       <div className="flex items-center space-x-2 pt-2">
                         <input
                           type="text"

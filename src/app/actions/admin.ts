@@ -194,15 +194,15 @@ export async function createPrayerAction(
     let isFeatured = false;
 
     if (data instanceof FormData) {
-      title = (data.get("title") as string) || "";
-      categoryId = (data.get("categoryId") as string) || "";
-      situation = (data.get("situation") as string) || "";
-      body = (data.get("body") as string) || "";
-      description =
-        (data.get("description") as string) ||
-        (data.get("scriptureReference") as string) ||
-        (data.get("scriptureText") as string) ||
-        undefined;
+      title = (data.get("title") as string | null) ?? "";
+      categoryId = (data.get("categoryId") as string | null) ?? "";
+      situation = (data.get("situation") as string | null) ?? "";
+      body = (data.get("body") as string | null) ?? "";
+      const descVal =
+        (data.get("description") as string | null) ??
+        (data.get("scriptureReference") as string | null) ??
+        (data.get("scriptureText") as string | null);
+      description = descVal ?? undefined;
       isFeatured = data.get("isFeatured") === "on" || data.get("isFeatured") === "true";
     } else {
       title = data.title;
@@ -210,9 +210,9 @@ export async function createPrayerAction(
       situation = data.situation;
       body = data.body;
       description =
-        data.description ||
-        data.scriptureReference ||
-        data.scriptureText ||
+        data.description ??
+        data.scriptureReference ??
+        data.scriptureText ??
         undefined;
       isFeatured = Boolean(data.isFeatured);
     }
@@ -257,11 +257,11 @@ export async function createPrayerAction(
         title: title.trim(),
         slug: finalSlug,
         body: body.trim(),
-        description: description?.trim() || null,
+        description: description?.trim() ? description.trim() : null,
         isPublished: true,
         isFeatured,
         categoryId,
-        situationId: situationRecord ? situationRecord.id : null,
+        situationId: situationRecord?.id ?? null,
       },
     });
 
@@ -300,26 +300,26 @@ export async function updatePrayerAction(
     let isPublished = true;
 
     if (data instanceof FormData) {
-      title = (data.get("title") as string) || "";
-      categoryId = (data.get("categoryId") as string) || "";
-      situation = (data.get("situation") as string) || "";
-      body = (data.get("body") as string) || "";
-      description =
-        (data.get("description") as string) ||
-        (data.get("scriptureReference") as string) ||
-        (data.get("scriptureText") as string) ||
-        undefined;
+      title = (data.get("title") as string | null) ?? "";
+      categoryId = (data.get("categoryId") as string | null) ?? "";
+      situation = (data.get("situation") as string | null) ?? "";
+      body = (data.get("body") as string | null) ?? "";
+      const descVal =
+        (data.get("description") as string | null) ??
+        (data.get("scriptureReference") as string | null) ??
+        (data.get("scriptureText") as string | null);
+      description = descVal ?? undefined;
       isFeatured = data.get("isFeatured") === "on" || data.get("isFeatured") === "true";
       isPublished = data.get("isPublished") !== "false";
     } else {
       title = data.title;
       categoryId = data.categoryId;
-      situation = data.situation || "";
+      situation = data.situation ?? "";
       body = data.body;
       description =
-        data.description ||
-        data.scriptureReference ||
-        data.scriptureText ||
+        data.description ??
+        data.scriptureReference ??
+        data.scriptureText ??
         undefined;
       isFeatured = Boolean(data.isFeatured);
       isPublished = data.isPublished !== undefined ? Boolean(data.isPublished) : true;
@@ -356,9 +356,9 @@ export async function updatePrayerAction(
       data: {
         title: title.trim(),
         categoryId,
-        situationId: situationRecord ? situationRecord.id : null,
+        situationId: situationRecord?.id ?? null,
         body: body.trim(),
-        description: description?.trim() || null,
+        description: description?.trim() ? description.trim() : null,
         isFeatured,
         isPublished,
       },

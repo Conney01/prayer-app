@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function NewPrayerPage() {
   const session = await auth();
 
-  if (!session?.user || session.user.role !== "ADMIN") {
+  if (session?.user?.role !== "ADMIN") {
     redirect("/login");
   }
 
