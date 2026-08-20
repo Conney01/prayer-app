@@ -14,13 +14,18 @@ export default async function NewPrayerPage() {
 
   const rawCategories = await db.category.findMany({
     orderBy: { name: "asc" },
+    include: {
+      situations: {
+        orderBy: { name: "asc" },
+      },
+    },
   });
 
   const initialCategories = rawCategories.map((cat) => ({
     id: cat.id,
     name: cat.name,
     slug: cat.slug,
-    situations: Array.isArray(cat.situations) ? (cat.situations as string[]) : [],
+    situations: cat.situations.map((s) => s.name),
   }));
 
   return <NewPrayerForm initialCategories={initialCategories} />;
