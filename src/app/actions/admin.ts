@@ -148,6 +148,11 @@ export async function removeSituationAction(categoryId: string, situationToRemov
     });
 
     if (existing) {
+      await db.prayer.updateMany({
+        where: { situationId: existing.id },
+        data: { situationId: null },
+      });
+
       await db.situation.delete({
         where: { id: existing.id },
       });
@@ -166,17 +171,53 @@ export async function removeSituationAction(categoryId: string, situationToRemov
   }
 }
 
-export async function createPrayerAction(formData: {
-  title: string;
-  categoryId: string;
-  situation: string;
-  body: string;
-  scriptureReference?: string;
-  scriptureText?: string;
-  isFeatured?: boolean;
-}) {
+export async function createPrayerAction(
+  data:
+    | FormData
+    | {
+        title: string;
+        categoryId: string;
+        situation: string;
+        body: string;
+        description?: string;
+        scriptureReference?: string;
+        scriptureText?: string;
+        isFeatured?: boolean;
+      }
+) {
   try {
-    const slug = formData.title
+    let title = "";
+    let categoryId = "";
+    let situation = "";
+    let body = "";
+    let description: string | undefined = undefined;
+    let isFeatured = false;
+
+    if (data instanceof FormData) {
+      title = (data.get("title") as string) || "";
+      categoryId = (data.get("categoryId") as string) || "";
+      situation = (data.get("situation") as string) || "";
+      body = (data.get("body") as string) || "";
+      description =
+        (data.get("description") as string) ||
+        (data.get("scriptureReference") as string) ||
+        (data.get("scriptureText") as string) ||
+        undefined;
+      isFeatured = data.get("isFeatured") === "on" || data.get("isFeatured") === "true";
+    } else {
+      title = data.title;
+      categoryId = data.categoryId;
+      situation = data.situation;
+      body = data.body;
+      description =
+        data.description ||
+        data.scriptureReference ||
+        data.scriptureText ||
+        undefined;
+      isFeatured = Boolean(data.isFeatured);
+    }
+
+    const slug = title
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9]+/g, "-")
@@ -185,47 +226,43 @@ export async function createPrayerAction(formData: {
     const existing = await db.prayer.findUnique({ where: { slug } });
     const finalSlug = existing ? `${slug}-${Date.now().toString().slice(-4)}` : slug;
 
-    let situationRecord = await db.situation.findFirst({
-      where: {
-        categoryId: formData.categoryId,
-        name: formData.situation.trim(),
-      },
-    });
-
-    if (!situationRecord) {
-      const sitSlug = formData.situation
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)+/g, "");
-
-      situationRecord = await db.situation.create({
-        data: {
-          name: formData.situation.trim(),
-          slug: `${sitSlug}-${Date.now().toString().slice(-4)}`,
-          categoryId: formData.categoryId,
+    let situationRecord = null;
+    if (situation.trim()) {
+      situationRecord = await db.situation.findFirst({
+        where: {
+          categoryId,
+          name: situation.trim(),
         },
       });
-    }
 
-    const scriptureVal = formData.scriptureReference?.trim() || formData.scriptureText?.trim() || null;
+      if (!situationRecord) {
+        const sitSlug = situation
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)+/g, "");
 
-    const dataObj: any = {
-      title: formData.title.trim(),
-      slug: finalSlug,
-      body: formData.body.trim(),
-      isPublished: true,
-      isFeatured: Boolean(formData.isFeatured),
-      categoryId: formData.categoryId,
-      situationId: situationRecord.id,
-    };
-
-    if (scriptureVal) {
-      dataObj["scripture"] = scriptureVal;
+        situationRecord = await db.situation.create({
+          data: {
+            name: situation.trim(),
+            slug: `${sitSlug}-${Date.now().toString().slice(-4)}`,
+            categoryId,
+          },
+        });
+      }
     }
 
     const prayer = await db.prayer.create({
-      data: dataObj,
+      data: {
+        title: title.trim(),
+        slug: finalSlug,
+        body: body.trim(),
+        description: description?.trim() || null,
+        isPublished: true,
+        isFeatured,
+        categoryId,
+        situationId: situationRecord ? situationRecord.id : null,
+      },
     });
 
     revalidatePath("/admin");
@@ -239,59 +276,92 @@ export async function createPrayerAction(formData: {
 
 export async function updatePrayerAction(
   prayerId: string,
-  formData: {
-    title: string;
-    categoryId: string;
-    situation: string;
-    body: string;
-    scriptureReference?: string;
-    scriptureText?: string;
-    isFeatured?: boolean;
-    isPublished?: boolean;
-  }
+  data:
+    | FormData
+    | {
+        title: string;
+        categoryId: string;
+        situation?: string;
+        body: string;
+        description?: string;
+        scriptureReference?: string;
+        scriptureText?: string;
+        isFeatured?: boolean;
+        isPublished?: boolean;
+      }
 ) {
   try {
-    let situationRecord = await db.situation.findFirst({
-      where: {
-        categoryId: formData.categoryId,
-        name: formData.situation.trim(),
-      },
-    });
+    let title = "";
+    let categoryId = "";
+    let situation = "";
+    let body = "";
+    let description: string | undefined = undefined;
+    let isFeatured = false;
+    let isPublished = true;
 
-    if (!situationRecord) {
-      const sitSlug = formData.situation
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)+/g, "");
-
-      situationRecord = await db.situation.create({
-        data: {
-          name: formData.situation.trim(),
-          slug: `${sitSlug}-${Date.now().toString().slice(-4)}`,
-          categoryId: formData.categoryId,
-        },
-      });
+    if (data instanceof FormData) {
+      title = (data.get("title") as string) || "";
+      categoryId = (data.get("categoryId") as string) || "";
+      situation = (data.get("situation") as string) || "";
+      body = (data.get("body") as string) || "";
+      description =
+        (data.get("description") as string) ||
+        (data.get("scriptureReference") as string) ||
+        (data.get("scriptureText") as string) ||
+        undefined;
+      isFeatured = data.get("isFeatured") === "on" || data.get("isFeatured") === "true";
+      isPublished = data.get("isPublished") !== "false";
+    } else {
+      title = data.title;
+      categoryId = data.categoryId;
+      situation = data.situation || "";
+      body = data.body;
+      description =
+        data.description ||
+        data.scriptureReference ||
+        data.scriptureText ||
+        undefined;
+      isFeatured = Boolean(data.isFeatured);
+      isPublished = data.isPublished !== undefined ? Boolean(data.isPublished) : true;
     }
 
-    const scriptureVal = formData.scriptureReference?.trim() || formData.scriptureText?.trim() || null;
+    let situationRecord = null;
+    if (situation.trim()) {
+      situationRecord = await db.situation.findFirst({
+        where: {
+          categoryId,
+          name: situation.trim(),
+        },
+      });
 
-    const dataObj: any = {
-      title: formData.title.trim(),
-      categoryId: formData.categoryId,
-      situationId: situationRecord.id,
-      body: formData.body.trim(),
-      isFeatured: Boolean(formData.isFeatured),
-      isPublished: formData.isPublished !== undefined ? Boolean(formData.isPublished) : true,
-    };
+      if (!situationRecord) {
+        const sitSlug = situation
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)+/g, "");
 
-    if (scriptureVal) {
-      dataObj["scripture"] = scriptureVal;
+        situationRecord = await db.situation.create({
+          data: {
+            name: situation.trim(),
+            slug: `${sitSlug}-${Date.now().toString().slice(-4)}`,
+            categoryId,
+          },
+        });
+      }
     }
 
     const prayer = await db.prayer.update({
       where: { id: prayerId },
-      data: dataObj,
+      data: {
+        title: title.trim(),
+        categoryId,
+        situationId: situationRecord ? situationRecord.id : null,
+        body: body.trim(),
+        description: description?.trim() || null,
+        isFeatured,
+        isPublished,
+      },
     });
 
     revalidatePath("/admin");
