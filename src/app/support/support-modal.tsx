@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { ArrowLeft, Smartphone, Sparkles, Loader2, CheckCircle2, Heart, CreditCard, MessageSquare, Mail, MessageCircle, Instagram } from "lucide-react";
+import { ArrowLeft, Smartphone, Sparkles, Loader2, CheckCircle2, Heart, CreditCard, MessageSquare, Mail, MessageCircle, Globe } from "lucide-react";
 import { initiateMpesaDonationAction } from "~/app/actions/mpesa";
 
 export function SupportModal() {
@@ -388,8 +388,8 @@ export function SupportModal() {
             rel="noopener noreferrer"
             className="inline-flex items-center space-x-1.5 text-xs text-[#6b635e] hover:text-[#2d5a3d] transition"
           >
-            <Instagram className="h-4 w-4" />
-            <span>Instagram</span>
+            <Globe className="h-4 w-4" />
+            <span>Socials</span>
           </a>
         </div>
       </footer>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { auth } from "~/server/auth";
-import { Sparkles, ArrowRight, Heart, ShieldCheck, Mail, MessageCircle, Instagram } from "lucide-react";
+import { Sparkles, ArrowRight, Heart, ShieldCheck, Mail, MessageCircle, Globe } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -126,8 +126,8 @@ export default async function HomePage() {
             rel="noopener noreferrer"
             className="inline-flex items-center space-x-1.5 text-xs text-[#6b635e] hover:text-[#2d5a3d] transition"
           >
-            <Instagram className="h-4 w-4" />
-            <span>Instagram</span>
+            <Globe className="h-4 w-4" />
+            <span>Socials</span>
           </a>
         </div>
       </footer>
