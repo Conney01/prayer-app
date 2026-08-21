@@ -119,3 +119,10 @@ model Donation {
 
   @@index([status])
 }
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String?
+  email     String?
+  message   String
+  createdAt DateTime @default(now())
+}

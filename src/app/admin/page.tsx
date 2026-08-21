@@ -1,134 +1,147 @@
-import Image from "next/image";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Plus, BookOpen, CheckCircle, Sparkles, Layers, ExternalLink } from "lucide-react";
+import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { auth, signOut } from "~/server/auth";
-import { AdminPrayersTable } from "~/components/admin-prayers-table";
+import { ShieldCheck, ArrowLeft, MessageSquare, Mail, Calendar, Trash2 } from "lucide-react";
 
-export default async function AdminDashboardPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AdminPage() {
   const session = await auth();
 
   if (!session?.user?.id || session.user.role !== "ADMIN") {
-    redirect("/login");
+    redirect("/dashboard");
   }
 
-  const [prayers, categories, totalSituations] = await Promise.all([
-    db.prayer.findMany({
-      orderBy: { createdAt: "desc" },
-      include: {
-        category: true,
-        situation: true,
-      },
-    }),
-    db.category.findMany({
-      orderBy: { sortOrder: "asc" },
-      select: { id: true, name: true, sortOrder: true },
-    }),
-    db.situation.count(),
-  ]);
+  const prayers = await db.prayer.findMany({
+    include: { category: true },
+    orderBy: { createdAt: "desc" },
+  });
 
-  const totalPrayers = prayers.length;
-  const publishedCount = prayers.filter((p) => p.isPublished).length;
-  const featuredCount = prayers.filter((p) => p.isFeatured).length;
+  const categories = await db.category.findMany({
+    orderBy: { sortOrder: "asc" },
+  });
+
+  const feedbacks = await db.feedback.findMany({
+    orderBy: { createdAt: "desc" },
+  });
 
   return (
-    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28]">
-      {/* Top Header with Logo */}
-      <header className="sticky top-0 z-40 border-b border-[#eedad2] bg-[#fdf0ec]/90 backdrop-blur-md">
-        <div className="mx-auto flex h-18 max-w-6xl items-center justify-between px-8">
+    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] py-8 px-4 sm:px-8">
+      <div className="mx-auto max-w-5xl space-y-8">
+        <header className="flex items-center justify-between border-b border-[#eedad2] pb-6">
           <div className="flex items-center space-x-3">
-            <div className="relative h-9 w-9 overflow-hidden rounded-lg border border-[#eedad2] bg-[#faf3f0] shadow-sm">
-              <Image
-                src="/logo.jpg"
-                alt="Sanctuary Logo"
-                fill
-                sizes="36px"
-                className="object-cover"
-                priority
-              />
+            <ShieldCheck className="h-7 w-7 text-[#2d5a3d]" />
+            <div>
+              <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#1f3a28]">
+                Admin Curator Panel
+              </h1>
+              <p className="text-xs text-[#6b635e]">
+                Manage prayer collections, devotions, and view user feedback.
+              </p>
             </div>
-            <span className="text-xs uppercase tracking-[0.25em] font-medium text-[#1f3a28]">
-              Prayer Sanctuary &mdash; Curator
-            </span>
           </div>
 
-          <div className="flex items-center space-x-6">
-            <Link
-              href="/dashboard"
-              className="flex items-center space-x-1.5 text-xs uppercase tracking-[0.15em] text-[#6b635e] hover:text-[#1f3a28] transition font-medium"
-            >
-              <span>Member View</span>
-              <ExternalLink className="h-3.5 w-3.5" />
-            </Link>
+          <div className="flex items-center space-x-3">
             <Link
               href="/admin/prayers/new"
-              className="flex items-center space-x-1.5 bg-[#2d5a3d] px-5 py-2.5 text-xs font-medium uppercase tracking-[0.18em] text-white hover:bg-[#1f3a28] transition shadow-sm"
+              className="rounded-xl bg-[#2d5a3d] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#1f3a28] transition"
             >
-              <Plus className="h-3.5 w-3.5" />
-              <span>Add Prayer</span>
+              + New Prayer
             </Link>
-            <form
-              action={async () => {
-                "use server";
-                await signOut({ redirectTo: "/" });
-              }}
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center space-x-1.5 rounded-xl border border-[#eedad2] bg-[#faf3f0] px-4 py-2 text-xs font-semibold text-[#6b635e] hover:bg-white shadow-xs transition"
             >
-              <button type="submit" className="text-xs uppercase tracking-[0.15em] text-[#6b635e] hover:text-[#1f3a28] transition">
-                Sign Out
-              </button>
-            </form>
+              <ArrowLeft className="h-4 w-4" />
+              <span>Dashboard</span>
+            </Link>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main Content */}
-      <main className="mx-auto max-w-6xl px-8 py-12">
-        <div className="mb-10">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-[#d4907a] font-medium">Curator Portal</p>
-          <h1 className="font-serif text-3xl sm:text-4xl font-light text-[#1f3a28] mt-1">
-            Library Management
-          </h1>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
-          <div className="border border-[#eedad2] bg-[#faf3f0] p-6 shadow-sm">
-            <div className="flex items-center justify-between text-[#6b635e] mb-2">
-              <span className="text-[10px] uppercase tracking-[0.2em]">Total Prayers</span>
-              <BookOpen className="h-4 w-4 text-[#2d5a3d]" />
+        {/* User Feedback & Reviews Section */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-2">
+            <div className="flex items-center space-x-2">
+              <MessageSquare className="h-5 w-5 text-[#2d5a3d]" />
+              <h2 className="font-serif text-lg font-bold text-[#1f3a28]">
+                User Feedback &amp; Suggestions ({feedbacks.length})
+              </h2>
             </div>
-            <p className="font-serif text-3xl text-[#1f3a28]">{totalPrayers}</p>
+            <span className="text-xs text-[#6b635e]">Received from Support Hub</span>
           </div>
 
-          <div className="border border-[#eedad2] bg-[#faf3f0] p-6 shadow-sm">
-            <div className="flex items-center justify-between text-[#6b635e] mb-2">
-              <span className="text-[10px] uppercase tracking-[0.2em]">Published</span>
-              <CheckCircle className="h-4 w-4 text-[#2d5a3d]" />
+          {feedbacks.length === 0 ? (
+            <div className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 text-center text-xs text-[#6b635e]">
+              No feedback received from users yet.
             </div>
-            <p className="font-serif text-3xl text-[#1f3a28]">{publishedCount}</p>
-          </div>
-
-          <div className="border border-[#eedad2] bg-[#faf3f0] p-6 shadow-sm">
-            <div className="flex items-center justify-between text-[#6b635e] mb-2">
-              <span className="text-[10px] uppercase tracking-[0.2em]">Featured</span>
-              <Sparkles className="h-4 w-4 text-[#d4907a]" />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {feedbacks.map((fb) => (
+                <div key={fb.id} className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-5 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between text-[11px] text-[#6b635e] border-b border-[#eedad2]/50 pb-2">
+                    <span className="flex items-center space-x-1.5 font-medium text-[#1f3a28]">
+                      <Mail className="h-3.5 w-3.5 text-[#2d5a3d]" />
+                      <span>{fb.email || "Anonymous Seeker"}</span>
+                    </span>
+                    <span className="flex items-center space-x-1">
+                      <Calendar className="h-3 w-3" />
+                      <span>{new Date(fb.createdAt).toLocaleDateString()}</span>
+                    </span>
+                  </div>
+                  <p className="font-serif text-xs sm:text-sm text-[#1f3a28] leading-relaxed">
+                    &ldquo;{fb.message}&rdquo;
+                  </p>
+                </div>
+              ))}
             </div>
-            <p className="font-serif text-3xl text-[#1f3a28]">{featuredCount}</p>
-          </div>
-
-          <div className="border border-[#eedad2] bg-[#faf3f0] p-6 shadow-sm">
-            <div className="flex items-center justify-between text-[#6b635e] mb-2">
-              <span className="text-[10px] uppercase tracking-[0.2em]">Situations</span>
-              <Layers className="h-4 w-4 text-[#2d5a3d]" />
-            </div>
-            <p className="font-serif text-3xl text-[#1f3a28]">{totalSituations}</p>
-          </div>
+          )}
         </div>
 
-        {/* Filterable Table */}
-        <AdminPrayersTable initialPrayers={prayers} categories={categories} />
-      </main>
+        {/* Existing Prayers Management */}
+        <div className="space-y-4 pt-4">
+          <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-2">
+            <h2 className="font-serif text-lg font-bold text-[#1f3a28]">
+              Published Prayers ({prayers.length})
+            </h2>
+            <span className="text-xs text-[#6b635e]">{categories.length} Categories</span>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3">
+            {prayers.map((prayer) => (
+              <div
+                key={prayer.id}
+                className="flex items-center justify-between rounded-xl border border-[#eedad2] bg-[#faf3f0] p-4 shadow-2xs hover:bg-white transition"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#d4907a]">
+                      {prayer.category.name}
+                    </span>
+                    {prayer.isFeatured && (
+                      <span className="rounded-full bg-[#2d5a3d]/10 px-2 py-0.5 text-[9px] font-bold text-[#2d5a3d]">
+                        Daily Devotion
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="font-serif text-sm font-bold text-[#1f3a28]">
+                    {prayer.title}
+                  </h3>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Link
+                    href={`/admin/prayers/${prayer.id}/edit`}
+                    className="rounded-lg border border-[#eedad2] bg-white px-3 py-1.5 text-xs font-semibold text-[#1f3a28] hover:bg-[#faf3f0] transition"
+                  >
+                    Edit
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
