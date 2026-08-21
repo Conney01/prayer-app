@@ -4,11 +4,11 @@ import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { WeeklyStreak } from "~/components/weekly-streak";
 import { PrayerHistory } from "~/components/prayer-history";
+import { MpesaSupportCard } from "~/components/mpesa-support-card";
 import { Heart, Sparkles, BookOpen, ArrowRight, ShieldCheck, Bookmark } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-// Curated daily scripture passages and reflections matched to devotional themes
 const DAILY_ANCHORS = [
   {
     reference: "Philippians 4:6-7",
@@ -79,7 +79,6 @@ export default async function DashboardPage() {
     },
   });
 
-  // Automated Daily Devotion Selection
   const publishedPrayers = await db.prayer.findMany({
     where: { isPublished: true },
     include: { category: true },
@@ -142,7 +141,7 @@ export default async function DashboardPage() {
           completedDates={completedDates}
         />
 
-        {/* Restored Original Layout: Proper Bible Verse -> Reflection -> Matching Theme Prayer */}
+        {/* Daily Devotional Card */}
         {dailyDevotion && (
           <div className="relative overflow-hidden rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-sm space-y-5">
             <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-3">
@@ -155,7 +154,6 @@ export default async function DashboardPage() {
               </span>
             </div>
 
-            {/* 1. Proper Bible Verse & Reflection Anchor */}
             <div className="rounded-xl border border-[#eedad2]/70 bg-white/70 p-4 space-y-2">
               <div className="flex items-center space-x-1.5 text-[10px] font-bold uppercase tracking-wider text-[#2d5a3d]">
                 <Bookmark className="h-3 w-3" />
@@ -166,7 +164,6 @@ export default async function DashboardPage() {
               </p>
             </div>
 
-            {/* 2. Matched Theme Prayer from List */}
             <div className="space-y-2 pt-1">
               <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#d4907a]">
                 Today&apos;s Matching Theme Prayer
@@ -179,7 +176,6 @@ export default async function DashboardPage() {
               </p>
             </div>
 
-            {/* 3. Action Button */}
             <div className="flex items-center justify-between pt-4 border-t border-[#eedad2]/60">
               <span className="text-[11px] text-[#6b635e]">
                 Daily Meditation &amp; Stillness
@@ -195,7 +191,7 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* Categories Grid & Recent Journey */}
+        {/* Categories Grid & Embedded M-Pesa Support Card */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-2">
@@ -256,8 +252,10 @@ export default async function DashboardPage() {
             )}
           </div>
 
-          <div className="lg:col-span-1">
+          {/* Right Column: Prayer History + M-Pesa Support Card */}
+          <div className="lg:col-span-1 space-y-6">
             <PrayerHistory completions={user?.completions ?? []} />
+            <MpesaSupportCard />
           </div>
         </div>
       </div>
