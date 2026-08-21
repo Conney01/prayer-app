@@ -72,27 +72,12 @@ model Prayer {
   isFeatured       Boolean            @default(false)
   favorites        Favorite[]
   completions      PrayerCompletion[]
-  dailyScriptures  DailyScripture[]
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @default(now()) @updatedAt
 
   @@index([categoryId, isPublished])
   @@index([situationId, isPublished])
   @@index([isFeatured, isPublished])
-}
-
-model DailyScripture {
-  id          String   @id @default(cuid())
-  reference   String
-  text        String   @db.Text
-  reflection  String?  @db.Text
-  date        DateTime @default(now())
-  prayer      Prayer?  @relation(fields: [prayerId], references: [id], onDelete: SetNull)
-  prayerId    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now()) @updatedAt
-
-  @@index([date])
 }
 
 model Favorite {
@@ -117,4 +102,20 @@ model PrayerCompletion {
 
   @@index([userId])
   @@index([prayerId])
+}
+
+model Donation {
+  id                  String   @id @default(cuid())
+  amount              Float
+  phoneNumber         String
+  checkoutRequestId   String?  @unique
+  merchantRequestId   String?
+  mpesaReceiptNumber  String?  @unique
+  status              String   @default("PENDING") // PENDING, COMPLETED, FAILED
+  isAnonymous         Boolean  @default(false)
+  donorName           String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @default(now()) @updatedAt
+
+  @@index([status])
 }
