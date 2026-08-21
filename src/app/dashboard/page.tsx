@@ -4,7 +4,7 @@ import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { WeeklyStreak } from "~/components/weekly-streak";
 import { PrayerHistory } from "~/components/prayer-history";
-import { Heart, Sparkles, BookOpen, ArrowRight, ShieldCheck, Quote } from "lucide-react";
+import { Heart, Sparkles, BookOpen, ArrowRight, ShieldCheck, Bookmark } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -47,9 +47,7 @@ export default async function DashboardPage() {
     },
   });
 
-  // Automated Daily Scripture & Meditation Selection
-  // 1. Prioritize any prayer marked isFeatured
-  // 2. Otherwise auto-rotate through prayers with descriptions/scriptures based on the day of the year
+  // Automated Daily Theme Selection
   const publishedPrayers = await db.prayer.findMany({
     where: { isPublished: true },
     include: { category: true },
@@ -73,7 +71,7 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] py-8 px-4 sm:px-8">
       <div className="mx-auto max-w-5xl space-y-8">
-        {/* Top Header */}
+        {/* Header */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eedad2] pb-6">
           <div>
             <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">
@@ -110,41 +108,53 @@ export default async function DashboardPage() {
           completedDates={completedDates}
         />
 
-        {/* Automated Scripture & Contemplation Anchor */}
+        {/* Today's Devotional & Scripture Anchor Card */}
         {dailyDevotion && (
-          <div className="relative overflow-hidden rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-sm">
+          <div className="relative overflow-hidden rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-sm space-y-5">
             <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-3">
               <div className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">
                 <Sparkles className="h-3.5 w-3.5" />
-                <span>{weekdayName}&apos;s Scripture Anchor</span>
+                <span>{weekdayName}&apos;s Sacred Anchor</span>
               </div>
-              <span className="font-serif text-xs font-bold text-[#1f3a28]">
+              <span className="text-[11px] font-semibold text-[#6b635e]">
                 {dailyDevotion.category.name}
               </span>
             </div>
 
-            {dailyDevotion.description ? (
-              <p className="mt-4 font-serif text-base sm:text-lg italic leading-relaxed text-[#1f3a28]">
-                &ldquo;{dailyDevotion.description}&rdquo;
-              </p>
-            ) : null}
+            {/* 1. Scripture Verse & Anchor (Only if description/scripture is provided) */}
+            {dailyDevotion.description && (
+              <div className="rounded-xl border border-[#eedad2]/70 bg-white/70 p-4 space-y-1.5">
+                <div className="flex items-center space-x-1.5 text-[10px] font-bold uppercase tracking-wider text-[#2d5a3d]">
+                  <Bookmark className="h-3 w-3" />
+                  <span>Scripture Anchor</span>
+                </div>
+                <p className="font-serif text-sm sm:text-base italic leading-relaxed text-[#1f3a28]">
+                  &ldquo;{dailyDevotion.description}&rdquo;
+                </p>
+              </div>
+            )}
 
-            <div className="mt-3">
-              <h2 className="font-serif text-base sm:text-lg font-bold text-[#1f3a28]">
+            {/* 2. Today's Theme Devotional Prayer */}
+            <div className="space-y-2 pt-1">
+              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#d4907a]">
+                Today&apos;s Devotional Prayer
+              </span>
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-[#1f3a28]">
                 {dailyDevotion.title}
               </h2>
-              <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-[#1f3a28]/80 font-serif">
+              <p className="font-serif text-xs sm:text-sm leading-relaxed text-[#1f3a28]/85 line-clamp-4">
                 {dailyDevotion.body}
               </p>
             </div>
 
-            <div className="mt-6 flex items-center justify-between pt-3 border-t border-[#eedad2]/40">
+            {/* 3. Action Button */}
+            <div className="flex items-center justify-between pt-4 border-t border-[#eedad2]/60">
               <span className="text-[11px] text-[#6b635e]">
                 Daily Meditation &amp; Stillness
               </span>
               <Link
                 href={`/prayers/${dailyDevotion.slug}`}
-                className="inline-flex items-center space-x-1.5 rounded-xl bg-[#2d5a3d] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-xs hover:bg-[#1f3a28] transition"
+                className="inline-flex items-center space-x-2 rounded-xl bg-[#2d5a3d] px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-xs hover:bg-[#1f3a28] transition"
               >
                 <span>Enter Prayer</span>
                 <ArrowRight className="h-3.5 w-3.5" />
