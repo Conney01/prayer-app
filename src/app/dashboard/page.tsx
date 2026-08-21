@@ -1,70 +1,12 @@
 import { redirect } from "next/navigation";
-import { Flame, Quote, Sparkles } from "lucide-react";
-import { db } from "~/server/db";
+import Link from "next/link";
 import { auth } from "~/server/auth";
-import { recordDailyLoginStreak } from "~/lib/streak";
-import { FloatingParticles } from "~/components/floating-particles";
-import { DashboardHub } from "~/components/dashboard-hub";
-import { Navbar } from "~/components/navbar";
+import { db } from "~/server/db";
+import { WeeklyStreak } from "~/components/weekly-streak";
+import { PrayerHistory } from "~/components/prayer-history";
+import { Heart, Sparkles, BookOpen, ArrowRight, ShieldCheck } from "lucide-react";
 
-interface Motivation {
-  day: string;
-  theme: string;
-  scripture: string;
-  message: string;
-}
-
-const DAILY_MOTIVATIONS: Motivation[] = [
-  {
-    day: "Sunday",
-    theme: "Rest & Sacred Renewal",
-    scripture: "Come to me, all who labor and are heavy laden, and I will give you rest. — Matthew 11:28",
-    message: "Today is an invitation to lay down the striving of the past week. Real rest is not just the absence of work; it is entering the quiet assurance that God is in control of your tomorrow.",
-  },
-  {
-    day: "Monday",
-    theme: "New Beginnings & Divine Strength",
-    scripture: "His mercies never come to an end; they are new every morning. Great is Your faithfulness. — Lamentations 3:22-23",
-    message: "Step into this fresh week with confidence. You do not walk into any challenge alone—God goes before you, and His grace is sufficient for every task ahead.",
-  },
-  {
-    day: "Tuesday",
-    theme: "Patience & Purposeful Steps",
-    scripture: "Be still before the Lord and wait patiently for Him. — Psalm 37:7",
-    message: "Trust the quiet work God is doing in your life. Even when progress feels slow, every faithful, honest step you take is seen and guided by His hand.",
-  },
-  {
-    day: "Wednesday",
-    theme: "Midweek Anchor & Unshakable Peace",
-    scripture: "Do not be anxious about anything, but in everything by prayer present your requests to God. — Philippians 4:6",
-    message: "When the demands of the week begin to feel heavy, let prayer be your breathing space. Hand your worries over to God and let His peace guard your heart.",
-  },
-  {
-    day: "Thursday",
-    theme: "Perseverance & Renewed Strength",
-    scripture: "Those who wait on the Lord shall renew their strength; they shall mount up with wings like eagles. — Isaiah 40:31",
-    message: "You have come too far to lose heart now. When your own energy runs low, lean directly on God's infinite strength to carry you through to completion.",
-  },
-  {
-    day: "Friday",
-    theme: "Gratitude & Remembering Goodness",
-    scripture: "Give thanks to the Lord, for He is good; His steadfast love endures forever. — Psalm 107:1",
-    message: "Take a quiet breath today and reflect on the moments of grace throughout this week. Cultivating a grateful heart turns ordinary days into sacred gifts.",
-  },
-  {
-    day: "Saturday",
-    theme: "Reflection & Quiet Stillness",
-    scripture: "Peace I leave with you; my peace I give you. Let not your hearts be troubled. — John 14:27",
-    message: "Pause and look back at how God sustained you through every day. Carry this calm, settled peace into your home, relationships, and rest.",
-  },
-];
-
-const fallbackMotivation: Motivation = {
-  day: "Today",
-  theme: "Peace & Sacred Renewal",
-  scripture: "Come to me, all who labor and are heavy laden, and I will give you rest. — Matthew 11:28",
-  message: "Today is an invitation to lay down your striving and rest in God's peace.",
-};
+export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -73,120 +15,191 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const isAdmin = session.user.role === "ADMIN";
-  const user = await recordDailyLoginStreak(session.user.id);
-
-  const [categories, allPrayers, userFavorites] = await Promise.all([
-    db.category.findMany({
-      orderBy: { sortOrder: "asc" },
-      include: {
-        _count: {
-          select: { prayers: { where: { isPublished: true } } },
-        },
-      },
-    }),
-    db.prayer.findMany({
-      where: { isPublished: true },
-      include: {
-        category: true,
-        situation: true,
-      },
-      orderBy: { createdAt: "desc" },
-    }),
-    db.favorite.findMany({
-      where: { userId: session.user.id },
-      include: {
-        prayer: {
-          include: {
-            category: true,
-            situation: true,
+  const user = await db.user.findUnique({
+    where: { id: session.user.id },
+    include: {
+      favorites: {
+        include: {
+          prayer: {
+            include: { category: true },
           },
         },
+        orderBy: { createdAt: "desc" },
       },
-      orderBy: { createdAt: "desc" },
-    }),
-  ]);
+      completions: {
+        include: {
+          prayer: {
+            include: { category: true },
+          },
+        },
+        orderBy: { completedAt: "desc" },
+        take: 8,
+      },
+    },
+  });
 
-  const streak = user?.currentStreak ?? 1;
-  const longest = user?.longestStreak ?? 1;
+  const categories = await db.category.findMany({
+    orderBy: { sortOrder: "asc" },
+    include: {
+      _count: {
+        select: { prayers: { where: { isPublished: true } } },
+      },
+    },
+  });
 
-  const dayIndex = new Date().getDay();
-  const todayMotivation: Motivation = DAILY_MOTIVATIONS[dayIndex] ?? DAILY_MOTIVATIONS[0] ?? fallbackMotivation;
+  const featuredPrayer = await db.prayer.findFirst({
+    where: { isFeatured: true, isPublished: true },
+    include: { category: true },
+  });
 
-  const dailyCategory = categories.find((c) => c.slug === "daily-prayers") ?? categories[0];
-  const otherCategories = categories.filter((c) => c.id !== dailyCategory?.id);
-  const savedPrayersList = userFavorites.map((f) => f.prayer);
+  const completedDates = (user?.completions ?? []).map((c) => c.completedAt);
 
   return (
-    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28]">
-      <Navbar streak={streak} isAdmin={isAdmin} />
+    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] py-8 px-4 sm:px-8">
+      <div className="mx-auto max-w-5xl space-y-8">
+        {/* Top Header */}
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eedad2] pb-6">
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">
+              Welcome to Your Quiet Space
+            </span>
+            <h1 className="mt-1 font-serif text-2xl sm:text-3xl font-bold text-[#1f3a28]">
+              {session.user.name ?? "Seeker"}&apos;s Sanctuary
+            </h1>
+          </div>
 
-      <section className="relative overflow-hidden border-b border-[#eedad2] pt-8 sm:pt-12 pb-12 sm:pb-16 px-4 sm:px-8">
-        <FloatingParticles />
-        <div className="relative z-20 mx-auto max-w-5xl space-y-8 sm:space-y-10">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-b border-[#eedad2] pb-8">
-            <div>
-              <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-[#d4907a] font-medium">
-                Welcome to your quiet space
+          <div className="flex items-center space-x-3">
+            {session.user.role === "ADMIN" && (
+              <Link
+                href="/admin"
+                className="inline-flex items-center space-x-1.5 rounded-xl border border-[#eedad2] bg-[#faf3f0] px-3.5 py-2 text-xs font-semibold uppercase tracking-wider text-[#2d5a3d] hover:bg-white shadow-xs transition"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                <span>Admin Curator</span>
+              </Link>
+            )}
+            <Link
+              href="/"
+              className="rounded-xl border border-[#eedad2] bg-[#faf3f0] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[#6b635e] hover:bg-white shadow-xs transition"
+            >
+              Home
+            </Link>
+          </div>
+        </header>
+
+        {/* Weekly Habit & Streak Engine */}
+        <WeeklyStreak
+          currentStreak={user?.currentStreak ?? 0}
+          longestStreak={user?.longestStreak ?? 0}
+          completedDates={completedDates}
+        />
+
+        {/* Featured Devotion / Anchor */}
+        {featuredPrayer && (
+          <div className="relative overflow-hidden rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-sm">
+            <div className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Today&apos;s Featured Anchor</span>
+            </div>
+
+            <h2 className="mt-2 font-serif text-xl sm:text-2xl font-bold text-[#1f3a28]">
+              {featuredPrayer.title}
+            </h2>
+
+            {featuredPrayer.description && (
+              <p className="mt-2 font-serif italic text-xs text-[#6b635e] leading-relaxed">
+                &ldquo;{featuredPrayer.description}&rdquo;
               </p>
-              <h1 className="font-serif text-3xl sm:text-5xl font-light italic tracking-tight text-[#1f3a28] mt-1">
-                {session.user.name ? `${session.user.name}'s Sanctuary` : "Sanctuary of Peace"}
-              </h1>
-            </div>
+            )}
 
-            <div className="relative overflow-hidden border border-orange-300/80 bg-gradient-to-br from-amber-50 via-[#faf3f0] to-orange-50 px-5 sm:px-6 py-3.5 sm:py-4 flex items-center space-x-4 shadow-[0_0_25px_rgba(249,115,22,0.22)]">
-              <div className="relative flex items-center justify-center rounded-full bg-gradient-to-tr from-amber-500 to-orange-500 p-2.5 sm:p-3 text-white shadow-[0_0_15px_rgba(249,115,22,0.6)]">
-                <Flame className="h-5 w-5 sm:h-6 sm:w-6 fill-amber-200 text-white animate-pulse" />
-              </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-orange-800">
-                  Daily Prayer Streak
-                </p>
-                <p className="font-serif text-xl sm:text-2xl font-bold text-[#1f3a28]">
-                  {streak} <span className="text-xs font-sans font-medium text-orange-700">Days Glowing</span>
-                </p>
-                <p className="text-[10px] text-[#6b635e]">Best: {longest} days</p>
-              </div>
-            </div>
-          </div>
+            <p className="mt-3 line-clamp-3 text-xs leading-relaxed text-[#1f3a28]/80">
+              {featuredPrayer.body}
+            </p>
 
-          <div className="border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-10 shadow-[0_4px_25px_rgba(212,144,122,0.12)] relative overflow-hidden">
-            <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-              <div className="space-y-3.5 max-w-3xl">
-                <div className="flex items-center space-x-2 text-[#d4907a]">
-                  <Sparkles className="h-4 w-4" />
-                  <span className="text-[10px] uppercase tracking-[0.3em] font-medium">
-                    {todayMotivation.day}&apos;s Scripture &bull; {todayMotivation.theme}
-                  </span>
-                </div>
-
-                <h2 className="font-serif text-xl sm:text-3xl font-light italic text-[#1f3a28] leading-snug">
-                  &ldquo;{todayMotivation.scripture}&rdquo;
-                </h2>
-
-                <p className="text-xs sm:text-sm text-[#6b635e] font-sans leading-relaxed pt-1">
-                  {todayMotivation.message}
-                </p>
-              </div>
-
-              <div className="hidden md:flex flex-col items-center justify-center border-l border-[#eedad2] pl-8 text-center min-w-[130px]">
-                <div className="rounded-full bg-[#2d5a3d]/10 p-3 text-[#2d5a3d] mb-1.5">
-                  <Quote className="h-5 w-5" />
-                </div>
-                <p className="font-serif text-lg text-[#1f3a28]">{todayMotivation.day}</p>
-                <p className="text-[10px] uppercase tracking-wider text-[#d4907a]">Daily Focus</p>
-              </div>
+            <div className="mt-5 flex items-center justify-between pt-2">
+              <span className="text-[11px] font-medium text-[#6b635e]">
+                Category: {featuredPrayer.category.name}
+              </span>
+              <Link
+                href={`/prayers/${featuredPrayer.slug}`}
+                className="inline-flex items-center space-x-1.5 rounded-xl bg-[#2d5a3d] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-xs hover:bg-[#1f3a28] transition"
+              >
+                <span>Enter Prayer</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
             </div>
           </div>
+        )}
 
-          <DashboardHub
-            dailyCategory={dailyCategory}
-            otherCategories={otherCategories}
-            searchablePrayers={allPrayers}
-            savedPrayers={savedPrayersList}
-          />
+        {/* Categories Grid & Recent Journey Split */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Categories Collection (2 Cols) */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-2">
+              <h3 className="font-serif text-base font-bold text-[#1f3a28]">
+                Prayer Collections
+              </h3>
+              <span className="text-[11px] text-[#6b635e]">
+                {categories.length} Collections
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {categories.map((cat) => (
+                <Link
+                  key={cat.id}
+                  href={`/categories/${cat.slug}`}
+                  className="group rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-5 shadow-xs transition hover:bg-white hover:shadow-md"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-serif text-sm font-bold text-[#1f3a28] group-hover:text-[#2d5a3d] transition">
+                      {cat.name}
+                    </span>
+                    <BookOpen className="h-4 w-4 text-[#6b635e]/60 group-hover:text-[#2d5a3d] transition" />
+                  </div>
+                  <p className="mt-2 text-[11px] text-[#6b635e]">
+                    {cat._count.prayers} {cat._count.prayers === 1 ? "prayer" : "prayers"} available
+                  </p>
+                </Link>
+              ))}
+            </div>
+
+            {/* Saved Favorites Section */}
+            {user?.favorites && user.favorites.length > 0 && (
+              <div className="pt-4 space-y-3">
+                <div className="flex items-center space-x-2 border-b border-[#eedad2]/60 pb-2">
+                  <Heart className="h-4 w-4 text-red-500 fill-red-500" />
+                  <h3 className="font-serif text-base font-bold text-[#1f3a28]">
+                    Saved Prayers ({user.favorites.length})
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {user.favorites.map((fav) => (
+                    <Link
+                      key={fav.id}
+                      href={`/prayers/${fav.prayer.slug}`}
+                      className="rounded-xl border border-[#eedad2] bg-white p-3.5 transition hover:border-[#2d5a3d] shadow-2xs"
+                    >
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#d4907a]">
+                        {fav.prayer.category.name}
+                      </span>
+                      <h4 className="font-serif text-xs font-semibold text-[#1f3a28] line-clamp-1 mt-0.5">
+                        {fav.prayer.title}
+                      </h4>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Prayer History Journey (1 Col) */}
+          <div className="lg:col-span-1">
+            <PrayerHistory completions={user?.completions ?? []} />
+          </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }
