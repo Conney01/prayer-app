@@ -7,14 +7,14 @@ export async function submitFeedbackAction(data: { email?: string; message: stri
   try {
     await db.feedback.create({
       data: {
-        email: data.email || null,
+        email: data.email ?? null,
         message: data.message,
-        userId: data.userId || null,
+        userId: data.userId ?? null,
       },
     });
     revalidatePath("/admin");
     return { success: true, message: "Thank you! Your feedback has been sent to the Sanctuary team." };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: "Failed to submit feedback. Please try again." };
   }
 }

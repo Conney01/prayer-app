@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { ShieldCheck, ArrowLeft, MessageSquare, Mail, Calendar, Trash2 } from "lucide-react";
+import { ShieldCheck, ArrowLeft, MessageSquare, Mail, Calendar } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -82,7 +82,7 @@ export default async function AdminPage() {
                   <div className="flex items-center justify-between text-[11px] text-[#6b635e] border-b border-[#eedad2]/50 pb-2">
                     <span className="flex items-center space-x-1.5 font-medium text-[#1f3a28]">
                       <Mail className="h-3.5 w-3.5 text-[#2d5a3d]" />
-                      <span>{fb.email || "Anonymous Seeker"}</span>
+                      <span>{fb.email ?? "Anonymous Seeker"}</span>
                     </span>
                     <span className="flex items-center space-x-1">
                       <Calendar className="h-3 w-3" />
