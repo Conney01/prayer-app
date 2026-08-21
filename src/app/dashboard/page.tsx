@@ -47,20 +47,25 @@ export default async function DashboardPage() {
     },
   });
 
-  // Fetch today's Daily Scripture (or latest available)
-  const todayScripture = await db.dailyScripture.findFirst({
-    orderBy: { date: "desc" },
-    include: {
-      prayer: {
-        include: { category: true },
-      },
-    },
+  // Automated Daily Scripture & Meditation Selection
+  // 1. Prioritize any prayer marked isFeatured
+  // 2. Otherwise auto-rotate through prayers with descriptions/scriptures based on the day of the year
+  const publishedPrayers = await db.prayer.findMany({
+    where: { isPublished: true },
+    include: { category: true },
+    orderBy: { createdAt: "asc" },
   });
 
-  const featuredPrayer = await db.prayer.findFirst({
-    where: { isFeatured: true, isPublished: true },
-    include: { category: true },
-  });
+  const dayOfYear = Math.floor(
+    (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 1000 / 60 / 60 / 24
+  );
+
+  const featured = publishedPrayers.find((p) => p.isFeatured);
+  const dailyDevotion =
+    featured ??
+    (publishedPrayers.length > 0
+      ? publishedPrayers[dayOfYear % publishedPrayers.length]
+      : null);
 
   const completedDates = (user?.completions ?? []).map((c) => c.completedAt);
   const weekdayName = new Date().toLocaleDateString(undefined, { weekday: "long" });
@@ -81,22 +86,13 @@ export default async function DashboardPage() {
 
           <div className="flex items-center space-x-3">
             {session.user.role === "ADMIN" && (
-              <>
-                <Link
-                  href="/admin/scriptures"
-                  className="inline-flex items-center space-x-1.5 rounded-xl border border-[#eedad2] bg-[#faf3f0] px-3.5 py-2 text-xs font-semibold uppercase tracking-wider text-[#2d5a3d] hover:bg-white shadow-xs transition"
-                >
-                  <Quote className="h-3.5 w-3.5" />
-                  <span>Scriptures</span>
-                </Link>
-                <Link
-                  href="/admin"
-                  className="inline-flex items-center space-x-1.5 rounded-xl border border-[#eedad2] bg-[#faf3f0] px-3.5 py-2 text-xs font-semibold uppercase tracking-wider text-[#2d5a3d] hover:bg-white shadow-xs transition"
-                >
-                  <ShieldCheck className="h-4 w-4" />
-                  <span>Admin Curator</span>
-                </Link>
-              </>
+              <Link
+                href="/admin"
+                className="inline-flex items-center space-x-1.5 rounded-xl border border-[#eedad2] bg-[#faf3f0] px-3.5 py-2 text-xs font-semibold uppercase tracking-wider text-[#2d5a3d] hover:bg-white shadow-xs transition"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                <span>Admin Curator</span>
+              </Link>
             )}
             <Link
               href="/"
@@ -114,8 +110,8 @@ export default async function DashboardPage() {
           completedDates={completedDates}
         />
 
-        {/* Phase 2: Daily Scripture Anchor Card with "Begin Prayer" CTA */}
-        {todayScripture ? (
+        {/* Automated Scripture & Contemplation Anchor */}
+        {dailyDevotion && (
           <div className="relative overflow-hidden rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-sm">
             <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-3">
               <div className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">
@@ -123,83 +119,41 @@ export default async function DashboardPage() {
                 <span>{weekdayName}&apos;s Scripture Anchor</span>
               </div>
               <span className="font-serif text-xs font-bold text-[#1f3a28]">
-                {todayScripture.reference}
+                {dailyDevotion.category.name}
               </span>
             </div>
 
-            <p className="mt-4 font-serif text-base sm:text-lg italic leading-relaxed text-[#1f3a28]">
-              &ldquo;{todayScripture.text}&rdquo;
-            </p>
-
-            {todayScripture.reflection && (
-              <p className="mt-3 text-xs leading-relaxed text-[#6b635e]">
-                {todayScripture.reflection}
+            {dailyDevotion.description ? (
+              <p className="mt-4 font-serif text-base sm:text-lg italic leading-relaxed text-[#1f3a28]">
+                &ldquo;{dailyDevotion.description}&rdquo;
               </p>
-            )}
+            ) : null}
 
-            <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-[#eedad2]/40">
+            <div className="mt-3">
+              <h2 className="font-serif text-base sm:text-lg font-bold text-[#1f3a28]">
+                {dailyDevotion.title}
+              </h2>
+              <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-[#1f3a28]/80 font-serif">
+                {dailyDevotion.body}
+              </p>
+            </div>
+
+            <div className="mt-6 flex items-center justify-between pt-3 border-t border-[#eedad2]/40">
               <span className="text-[11px] text-[#6b635e]">
-                {todayScripture.prayer
-                  ? `Connected Devotional: ${todayScripture.prayer.title}`
-                  : "Daily Silent Meditation"}
-              </span>
-
-              {todayScripture.prayer ? (
-                <Link
-                  href={`/prayers/${todayScripture.prayer.slug}`}
-                  className="inline-flex items-center justify-center space-x-2 rounded-xl bg-[#2d5a3d] px-6 py-2.5 text-xs font-bold uppercase tracking-[0.18em] text-white shadow-xs hover:bg-[#1f3a28] transition"
-                >
-                  <span>Begin Prayer</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              ) : featuredPrayer ? (
-                <Link
-                  href={`/prayers/${featuredPrayer.slug}`}
-                  className="inline-flex items-center justify-center space-x-2 rounded-xl bg-[#2d5a3d] px-6 py-2.5 text-xs font-bold uppercase tracking-[0.18em] text-white shadow-xs hover:bg-[#1f3a28] transition"
-                >
-                  <span>Begin Today&apos;s Prayer</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              ) : null}
-            </div>
-          </div>
-        ) : featuredPrayer ? (
-          <div className="relative overflow-hidden rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-sm">
-            <div className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Today&apos;s Featured Anchor</span>
-            </div>
-
-            <h2 className="mt-2 font-serif text-xl sm:text-2xl font-bold text-[#1f3a28]">
-              {featuredPrayer.title}
-            </h2>
-
-            {featuredPrayer.description && (
-              <p className="mt-2 font-serif italic text-xs text-[#6b635e] leading-relaxed">
-                &ldquo;{featuredPrayer.description}&rdquo;
-              </p>
-            )}
-
-            <p className="mt-3 line-clamp-3 text-xs leading-relaxed text-[#1f3a28]/80">
-              {featuredPrayer.body}
-            </p>
-
-            <div className="mt-5 flex items-center justify-between pt-2">
-              <span className="text-[11px] font-medium text-[#6b635e]">
-                Category: {featuredPrayer.category.name}
+                Daily Meditation &amp; Stillness
               </span>
               <Link
-                href={`/prayers/${featuredPrayer.slug}`}
+                href={`/prayers/${dailyDevotion.slug}`}
                 className="inline-flex items-center space-x-1.5 rounded-xl bg-[#2d5a3d] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-xs hover:bg-[#1f3a28] transition"
               >
-                <span>Begin Prayer</span>
+                <span>Enter Prayer</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
           </div>
-        ) : null}
+        )}
 
-        {/* Categories Grid & Recent Journey Split */}
+        {/* Categories Grid & Recent Journey */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-2">
