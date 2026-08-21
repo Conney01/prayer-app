@@ -8,6 +8,38 @@ import { Heart, Sparkles, BookOpen, ArrowRight, ShieldCheck, Bookmark } from "lu
 
 export const dynamic = "force-dynamic";
 
+// Curated daily scripture passages and reflections matched to devotional themes
+const DAILY_ANCHORS = [
+  {
+    reference: "Philippians 4:6-7",
+    reflection: "In moments of worry or uncertainty, turn your heart toward gratitude. God's peace guards our hearts when we release our burdens into His hands through prayer.",
+  },
+  {
+    reference: "Psalm 23:1-3",
+    reflection: "The Lord is our shepherd, providing quiet waters and restoring our weary souls. Rest in His gentle presence today and let Him guide your steps.",
+  },
+  {
+    reference: "Isaiah 40:31",
+    reflection: "Those who wait upon the Lord find their strength renewed. Take a deep breath, let go of striving, and let God lift you up on wings like eagles.",
+  },
+  {
+    reference: "Matthew 11:28-29",
+    reflection: "Jesus invites all who are weary and burdened to come to Him for rest. Lay down your heavy load today and receive His gentle, comforting grace.",
+  },
+  {
+    reference: "Romans 15:13",
+    reflection: "May the God of hope fill you with all joy and peace as you trust in Him, so that you may overflow with hope by the power of the Holy Spirit.",
+  },
+  {
+    reference: "Lamentations 3:22-23",
+    reflection: "His steadfast mercies never cease, and His compassions never fail; they are new every morning. Great is His faithfulness to you today.",
+  },
+  {
+    reference: "Psalm 46:10",
+    reflection: "Be still, and know that God is God. Release the noise of the world and find sanctuary in His unshakeable, peaceful presence.",
+  },
+];
+
 export default async function DashboardPage() {
   const session = await auth();
 
@@ -65,6 +97,8 @@ export default async function DashboardPage() {
       ? publishedPrayers[dayOfYear % publishedPrayers.length]
       : null);
 
+  const todayAnchor = DAILY_ANCHORS[dayOfYear % DAILY_ANCHORS.length]!;
+
   const completedDates = (user?.completions ?? []).map((c) => c.completedAt);
   const weekdayName = new Date().toLocaleDateString(undefined, { weekday: "long" });
 
@@ -108,7 +142,7 @@ export default async function DashboardPage() {
           completedDates={completedDates}
         />
 
-        {/* Restored Original Layout: Scripture Passage -> Reflection -> Theme Prayer */}
+        {/* Restored Original Layout: Proper Bible Verse -> Reflection -> Matching Theme Prayer */}
         {dailyDevotion && (
           <div className="relative overflow-hidden rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-sm space-y-5">
             <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-3">
@@ -121,18 +155,16 @@ export default async function DashboardPage() {
               </span>
             </div>
 
-            {/* 1. Scripture Passage Anchor */}
-            {dailyDevotion.description && (
-              <div className="rounded-xl border border-[#eedad2]/70 bg-white/70 p-4 space-y-1.5">
-                <div className="flex items-center space-x-1.5 text-[10px] font-bold uppercase tracking-wider text-[#2d5a3d]">
-                  <Bookmark className="h-3 w-3" />
-                  <span>Scripture Anchor &amp; Reflection</span>
-                </div>
-                <p className="font-serif text-sm sm:text-base italic leading-relaxed text-[#1f3a28]">
-                  &ldquo;{dailyDevotion.description}&rdquo;
-                </p>
+            {/* 1. Proper Bible Verse & Reflection Anchor */}
+            <div className="rounded-xl border border-[#eedad2]/70 bg-white/70 p-4 space-y-2">
+              <div className="flex items-center space-x-1.5 text-[10px] font-bold uppercase tracking-wider text-[#2d5a3d]">
+                <Bookmark className="h-3 w-3" />
+                <span>Scripture Anchor — {todayAnchor.reference}</span>
               </div>
-            )}
+              <p className="font-serif text-xs sm:text-sm leading-relaxed text-[#6b635e]">
+                {todayAnchor.reflection}
+              </p>
+            </div>
 
             {/* 2. Matched Theme Prayer from List */}
             <div className="space-y-2 pt-1">
