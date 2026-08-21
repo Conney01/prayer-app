@@ -4,7 +4,6 @@ import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { WeeklyStreak } from "~/components/weekly-streak";
 import { PrayerHistory } from "~/components/prayer-history";
-import { MpesaSupportCard } from "~/components/mpesa-support-card";
 import { Heart, Sparkles, BookOpen, ArrowRight, ShieldCheck, Bookmark } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -119,15 +118,22 @@ export default async function DashboardPage() {
             {session.user.role === "ADMIN" && (
               <Link
                 href="/admin"
-                className="inline-flex items-center space-x-1.5 rounded-xl border border-[#eedad2] bg-[#faf3f0] px-3.5 py-2 text-xs font-semibold uppercase tracking-wider text-[#2d5a3d] hover:bg-white shadow-xs transition"
+                className="inline-flex items-center space-x-1.5 rounded-xl border border-[#eedad2] bg-[#faf3f0] px-3.5 py-2 text-xs font-medium text-[#2d5a3d] hover:bg-white shadow-xs transition"
               >
                 <ShieldCheck className="h-4 w-4" />
                 <span>Admin Curator</span>
               </Link>
             )}
             <Link
+              href="/support"
+              className="inline-flex items-center space-x-1.5 rounded-xl border border-[#eedad2] bg-[#faf3f0] px-3.5 py-2 text-xs font-medium text-[#2d5a3d] hover:bg-white shadow-xs transition"
+            >
+              <Heart className="h-3.5 w-3.5 text-red-500 fill-red-500/20" />
+              <span>Support M-Pesa</span>
+            </Link>
+            <Link
               href="/"
-              className="rounded-xl border border-[#eedad2] bg-[#faf3f0] px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[#6b635e] hover:bg-white shadow-xs transition"
+              className="rounded-xl border border-[#eedad2] bg-[#faf3f0] px-4 py-2 text-xs font-medium text-[#6b635e] hover:bg-white shadow-xs transition"
             >
               Home
             </Link>
@@ -191,7 +197,7 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* Categories Grid & Embedded M-Pesa Support Card */}
+        {/* Categories Grid & Recent Journey */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-2">
@@ -252,10 +258,8 @@ export default async function DashboardPage() {
             )}
           </div>
 
-          {/* Right Column: Prayer History + M-Pesa Support Card */}
-          <div className="lg:col-span-1 space-y-6">
+          <div className="lg:col-span-1">
             <PrayerHistory completions={user?.completions ?? []} />
-            <MpesaSupportCard />
           </div>
         </div>
       </div>
