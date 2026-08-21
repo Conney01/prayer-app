@@ -59,25 +59,40 @@ model Situation {
 }
 
 model Prayer {
-  id          String             @id @default(cuid())
-  title       String
-  slug        String             @unique
-  body        String             @db.Text
-  description String?            @db.Text
-  category    Category           @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  categoryId  String
-  situation   Situation?         @relation(fields: [situationId], references: [id], onDelete: SetNull)
-  situationId String?
-  isPublished Boolean            @default(true)
-  isFeatured  Boolean            @default(false)
-  favorites   Favorite[]
-  completions PrayerCompletion[]
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @default(now()) @updatedAt
+  id               String             @id @default(cuid())
+  title            String
+  slug             String             @unique
+  body             String             @db.Text
+  description      String?            @db.Text
+  category         Category           @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId       String
+  situation        Situation?         @relation(fields: [situationId], references: [id], onDelete: SetNull)
+  situationId      String?
+  isPublished      Boolean            @default(true)
+  isFeatured       Boolean            @default(false)
+  favorites        Favorite[]
+  completions      PrayerCompletion[]
+  dailyScriptures  DailyScripture[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @default(now()) @updatedAt
 
   @@index([categoryId, isPublished])
   @@index([situationId, isPublished])
   @@index([isFeatured, isPublished])
+}
+
+model DailyScripture {
+  id          String   @id @default(cuid())
+  reference   String
+  text        String   @db.Text
+  reflection  String?  @db.Text
+  date        DateTime @default(now())
+  prayer      Prayer?  @relation(fields: [prayerId], references: [id], onDelete: SetNull)
+  prayerId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@index([date])
 }
 
 model Favorite {

@@ -4,7 +4,7 @@ import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { WeeklyStreak } from "~/components/weekly-streak";
 import { PrayerHistory } from "~/components/prayer-history";
-import { Heart, Sparkles, BookOpen, ArrowRight, ShieldCheck } from "lucide-react";
+import { Heart, Sparkles, BookOpen, ArrowRight, ShieldCheck, Quote } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -47,12 +47,23 @@ export default async function DashboardPage() {
     },
   });
 
+  // Fetch today's Daily Scripture (or latest available)
+  const todayScripture = await db.dailyScripture.findFirst({
+    orderBy: { date: "desc" },
+    include: {
+      prayer: {
+        include: { category: true },
+      },
+    },
+  });
+
   const featuredPrayer = await db.prayer.findFirst({
     where: { isFeatured: true, isPublished: true },
     include: { category: true },
   });
 
   const completedDates = (user?.completions ?? []).map((c) => c.completedAt);
+  const weekdayName = new Date().toLocaleDateString(undefined, { weekday: "long" });
 
   return (
     <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] py-8 px-4 sm:px-8">
@@ -70,13 +81,22 @@ export default async function DashboardPage() {
 
           <div className="flex items-center space-x-3">
             {session.user.role === "ADMIN" && (
-              <Link
-                href="/admin"
-                className="inline-flex items-center space-x-1.5 rounded-xl border border-[#eedad2] bg-[#faf3f0] px-3.5 py-2 text-xs font-semibold uppercase tracking-wider text-[#2d5a3d] hover:bg-white shadow-xs transition"
-              >
-                <ShieldCheck className="h-4 w-4" />
-                <span>Admin Curator</span>
-              </Link>
+              <>
+                <Link
+                  href="/admin/scriptures"
+                  className="inline-flex items-center space-x-1.5 rounded-xl border border-[#eedad2] bg-[#faf3f0] px-3.5 py-2 text-xs font-semibold uppercase tracking-wider text-[#2d5a3d] hover:bg-white shadow-xs transition"
+                >
+                  <Quote className="h-3.5 w-3.5" />
+                  <span>Scriptures</span>
+                </Link>
+                <Link
+                  href="/admin"
+                  className="inline-flex items-center space-x-1.5 rounded-xl border border-[#eedad2] bg-[#faf3f0] px-3.5 py-2 text-xs font-semibold uppercase tracking-wider text-[#2d5a3d] hover:bg-white shadow-xs transition"
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  <span>Admin Curator</span>
+                </Link>
+              </>
             )}
             <Link
               href="/"
@@ -94,8 +114,56 @@ export default async function DashboardPage() {
           completedDates={completedDates}
         />
 
-        {/* Featured Devotion / Anchor */}
-        {featuredPrayer && (
+        {/* Phase 2: Daily Scripture Anchor Card with "Begin Prayer" CTA */}
+        {todayScripture ? (
+          <div className="relative overflow-hidden rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-sm">
+            <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-3">
+              <div className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>{weekdayName}&apos;s Scripture Anchor</span>
+              </div>
+              <span className="font-serif text-xs font-bold text-[#1f3a28]">
+                {todayScripture.reference}
+              </span>
+            </div>
+
+            <p className="mt-4 font-serif text-base sm:text-lg italic leading-relaxed text-[#1f3a28]">
+              &ldquo;{todayScripture.text}&rdquo;
+            </p>
+
+            {todayScripture.reflection && (
+              <p className="mt-3 text-xs leading-relaxed text-[#6b635e]">
+                {todayScripture.reflection}
+              </p>
+            )}
+
+            <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-[#eedad2]/40">
+              <span className="text-[11px] text-[#6b635e]">
+                {todayScripture.prayer
+                  ? `Connected Devotional: ${todayScripture.prayer.title}`
+                  : "Daily Silent Meditation"}
+              </span>
+
+              {todayScripture.prayer ? (
+                <Link
+                  href={`/prayers/${todayScripture.prayer.slug}`}
+                  className="inline-flex items-center justify-center space-x-2 rounded-xl bg-[#2d5a3d] px-6 py-2.5 text-xs font-bold uppercase tracking-[0.18em] text-white shadow-xs hover:bg-[#1f3a28] transition"
+                >
+                  <span>Begin Prayer</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              ) : featuredPrayer ? (
+                <Link
+                  href={`/prayers/${featuredPrayer.slug}`}
+                  className="inline-flex items-center justify-center space-x-2 rounded-xl bg-[#2d5a3d] px-6 py-2.5 text-xs font-bold uppercase tracking-[0.18em] text-white shadow-xs hover:bg-[#1f3a28] transition"
+                >
+                  <span>Begin Today&apos;s Prayer</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              ) : null}
+            </div>
+          </div>
+        ) : featuredPrayer ? (
           <div className="relative overflow-hidden rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-sm">
             <div className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">
               <Sparkles className="h-3.5 w-3.5" />
@@ -124,16 +192,15 @@ export default async function DashboardPage() {
                 href={`/prayers/${featuredPrayer.slug}`}
                 className="inline-flex items-center space-x-1.5 rounded-xl bg-[#2d5a3d] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-xs hover:bg-[#1f3a28] transition"
               >
-                <span>Enter Prayer</span>
+                <span>Begin Prayer</span>
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* Categories Grid & Recent Journey Split */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Categories Collection (2 Cols) */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-2">
               <h3 className="font-serif text-base font-bold text-[#1f3a28]">
@@ -164,7 +231,6 @@ export default async function DashboardPage() {
               ))}
             </div>
 
-            {/* Saved Favorites Section */}
             {user?.favorites && user.favorites.length > 0 && (
               <div className="pt-4 space-y-3">
                 <div className="flex items-center space-x-2 border-b border-[#eedad2]/60 pb-2">
@@ -194,7 +260,6 @@ export default async function DashboardPage() {
             )}
           </div>
 
-          {/* Prayer History Journey (1 Col) */}
           <div className="lg:col-span-1">
             <PrayerHistory completions={user?.completions ?? []} />
           </div>

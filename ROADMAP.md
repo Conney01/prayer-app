@@ -6,9 +6,9 @@
 - [x] Quick Revisit & Favorite Actions
 
 ## Phase 2 — Daily Scripture Anchor (Small migration)
-- [ ] `DailyScripture` model — reference, text, reflection, linked prayer
-- [ ] Admin CRUD for managing daily scriptures
-- [ ] "Begin Prayer" CTA linking scripture to its devotional prayer
+- [x] `DailyScripture` model — reference, text, reflection, linked prayer
+- [x] Admin CRUD for managing daily scriptures at `/admin/scriptures`
+- [x] "Begin Prayer" CTA linking scripture to its devotional prayer
 
 ## Phase 3 — Personal Sanctuary (Batched migration)
 - [ ] `JournalEntry` — private reflections & gratitude prompts
