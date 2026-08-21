@@ -47,7 +47,7 @@ export default async function DashboardPage() {
     },
   });
 
-  // Automated Daily Theme Selection
+  // Automated Daily Devotion Selection
   const publishedPrayers = await db.prayer.findMany({
     where: { isPublished: true },
     include: { category: true },
@@ -108,25 +108,25 @@ export default async function DashboardPage() {
           completedDates={completedDates}
         />
 
-        {/* Today's Devotional & Scripture Anchor Card */}
+        {/* Restored Original Layout: Scripture Passage -> Reflection -> Theme Prayer */}
         {dailyDevotion && (
           <div className="relative overflow-hidden rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-sm space-y-5">
             <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-3">
               <div className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">
                 <Sparkles className="h-3.5 w-3.5" />
-                <span>{weekdayName}&apos;s Sacred Anchor</span>
+                <span>{weekdayName}&apos;s Daily Devotional</span>
               </div>
               <span className="text-[11px] font-semibold text-[#6b635e]">
                 {dailyDevotion.category.name}
               </span>
             </div>
 
-            {/* 1. Scripture Verse & Anchor (Only if description/scripture is provided) */}
+            {/* 1. Scripture Passage Anchor */}
             {dailyDevotion.description && (
               <div className="rounded-xl border border-[#eedad2]/70 bg-white/70 p-4 space-y-1.5">
                 <div className="flex items-center space-x-1.5 text-[10px] font-bold uppercase tracking-wider text-[#2d5a3d]">
                   <Bookmark className="h-3 w-3" />
-                  <span>Scripture Anchor</span>
+                  <span>Scripture Anchor &amp; Reflection</span>
                 </div>
                 <p className="font-serif text-sm sm:text-base italic leading-relaxed text-[#1f3a28]">
                   &ldquo;{dailyDevotion.description}&rdquo;
@@ -134,10 +134,10 @@ export default async function DashboardPage() {
               </div>
             )}
 
-            {/* 2. Today's Theme Devotional Prayer */}
+            {/* 2. Matched Theme Prayer from List */}
             <div className="space-y-2 pt-1">
               <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#d4907a]">
-                Today&apos;s Devotional Prayer
+                Today&apos;s Matching Theme Prayer
               </span>
               <h2 className="font-serif text-lg sm:text-xl font-bold text-[#1f3a28]">
                 {dailyDevotion.title}

@@ -180,8 +180,6 @@ export async function createPrayerAction(
         situation: string;
         body: string;
         description?: string;
-        scriptureReference?: string;
-        scriptureText?: string;
         isFeatured?: boolean;
       }
 ) {
@@ -190,8 +188,7 @@ export async function createPrayerAction(
     let categoryId = "";
     let situation = "";
     let body = "";
-    let scriptureRef = "";
-    let scriptureText = "";
+    let description = "";
     let isFeatured = false;
 
     if (data instanceof FormData) {
@@ -199,26 +196,15 @@ export async function createPrayerAction(
       categoryId = (data.get("categoryId") as string | null) ?? "";
       situation = (data.get("situation") as string | null) ?? "";
       body = (data.get("body") as string | null) ?? "";
-      scriptureRef = ((data.get("scriptureReference") as string | null) ?? "").trim();
-      scriptureText = ((data.get("scriptureText") as string | null) ?? "").trim();
+      description = ((data.get("description") as string | null) ?? "").trim();
       isFeatured = data.get("isFeatured") === "on" || data.get("isFeatured") === "true";
     } else {
       title = data.title;
       categoryId = data.categoryId;
       situation = data.situation;
       body = data.body;
-      scriptureRef = (data.scriptureReference ?? "").trim();
-      scriptureText = (data.scriptureText ?? data.description ?? "").trim();
+      description = (data.description ?? "").trim();
       isFeatured = Boolean(data.isFeatured);
-    }
-
-    let finalDescription: string | null = null;
-    if (scriptureRef && scriptureText) {
-      finalDescription = `${scriptureRef} — ${scriptureText}`;
-    } else if (scriptureRef) {
-      finalDescription = scriptureRef;
-    } else if (scriptureText) {
-      finalDescription = scriptureText;
     }
 
     const slug = title
@@ -261,7 +247,7 @@ export async function createPrayerAction(
         title: title.trim(),
         slug: finalSlug,
         body: body.trim(),
-        description: finalDescription,
+        description: description ? description : null,
         isPublished: true,
         isFeatured,
         categoryId,
@@ -288,8 +274,6 @@ export async function updatePrayerAction(
         situation?: string;
         body: string;
         description?: string;
-        scriptureReference?: string;
-        scriptureText?: string;
         isFeatured?: boolean;
         isPublished?: boolean;
       }
@@ -299,8 +283,7 @@ export async function updatePrayerAction(
     let categoryId = "";
     let situation = "";
     let body = "";
-    let scriptureRef = "";
-    let scriptureText = "";
+    let description = "";
     let isFeatured = false;
     let isPublished = true;
 
@@ -309,8 +292,7 @@ export async function updatePrayerAction(
       categoryId = (data.get("categoryId") as string | null) ?? "";
       situation = (data.get("situation") as string | null) ?? "";
       body = (data.get("body") as string | null) ?? "";
-      scriptureRef = ((data.get("scriptureReference") as string | null) ?? "").trim();
-      scriptureText = ((data.get("scriptureText") as string | null) ?? "").trim();
+      description = ((data.get("description") as string | null) ?? "").trim();
       isFeatured = data.get("isFeatured") === "on" || data.get("isFeatured") === "true";
       isPublished = data.get("isPublished") !== "false";
     } else {
@@ -318,19 +300,9 @@ export async function updatePrayerAction(
       categoryId = data.categoryId;
       situation = data.situation ?? "";
       body = data.body;
-      scriptureRef = (data.scriptureReference ?? "").trim();
-      scriptureText = (data.scriptureText ?? data.description ?? "").trim();
+      description = (data.description ?? "").trim();
       isFeatured = Boolean(data.isFeatured);
       isPublished = data.isPublished !== undefined ? Boolean(data.isPublished) : true;
-    }
-
-    let finalDescription: string | null = null;
-    if (scriptureRef && scriptureText) {
-      finalDescription = `${scriptureRef} — ${scriptureText}`;
-    } else if (scriptureRef) {
-      finalDescription = scriptureRef;
-    } else if (scriptureText) {
-      finalDescription = scriptureText;
     }
 
     let situationRecord = null;
@@ -366,7 +338,7 @@ export async function updatePrayerAction(
         categoryId,
         situationId: situationRecord?.id ?? null,
         body: body.trim(),
-        description: finalDescription,
+        description: description ? description : null,
         isFeatured,
         isPublished,
       },

@@ -1,24 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  Plus,
-  Trash2,
-  Settings2,
-  CheckCircle2,
-  X,
-  Sparkles,
-  Loader2,
-} from "lucide-react";
-import {
-  createPrayerAction,
-  createCategoryAction,
-  deleteCategoryAction,
-  addSituationAction,
-  removeSituationAction,
-} from "~/app/actions/admin";
+import { ArrowLeft, Plus, Trash2, Sparkles, Loader2 } from "lucide-react";
+import { getAdminCategories, createCategoryAction, deleteCategoryAction, addSituationAction, removeSituationAction, createPrayerAction } from "~/app/actions/admin";
 
 interface CategoryData {
   id: string;
@@ -27,493 +13,365 @@ interface CategoryData {
   situations: string[];
 }
 
-export function NewPrayerForm({ initialCategories }: { initialCategories: CategoryData[] }) {
-  const [categories, setCategories] = useState<CategoryData[]>(initialCategories);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
-    initialCategories[0]?.id ?? ""
-  );
-  const [selectedSituation, setSelectedSituation] = useState<string>("");
-  const [prayerText, setPrayerText] = useState<string>("");
-  const [scriptureRef, setScriptureRef] = useState<string>("");
-  const [scriptureText, setScriptureText] = useState<string>("");
-  const [isFeatured, setIsFeatured] = useState<boolean>(false);
-
-  const [addedCount, setAddedCount] = useState(0);
-  const [lastSavedTitle, setLastSavedTitle] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+export function NewPrayerForm() {
+  const router = useRouter();
+  const [categories, setCategories] = useState<CategoryData[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [selectedSituation, setSelectedSituation] = useState("");
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newSituationName, setNewSituationName] = useState("");
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [description, setDescription] = useState("");
+  const [isFeatured, setIsFeatured] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  // Manager Modal State
-  const [isManagerOpen, setIsManagerOpen] = useState(false);
-  const [newCatName, setNewCatName] = useState("");
-  const [newSitName, setNewSitName] = useState("");
-  const [inlineSitInput, setInlineSitInput] = useState("");
-  const [showInlineSitAdd, setShowInlineSitAdd] = useState(false);
+  useEffect(() => {
+    getAdminCategories().then((res) => {
+      if (res.success && res.categories.length > 0) {
+        setCategories(res.categories);
+        setSelectedCategoryId(res.categories[0]!.id);
+        if (res.categories[0]!.situations.length > 0) {
+          setSelectedSituation(res.categories[0]!.situations[0]!);
+        }
+      }
+    });
+  }, []);
 
-  const activeCategory = categories.find((c) => c.id === selectedCategoryId);
-  const currentSituations = activeCategory?.situations ?? [];
+  const currentCategory = categories.find((c) => c.id === selectedCategoryId);
 
-  const activeSituation = selectedSituation || (currentSituations[0] ?? "");
-  const prayerTitle = activeSituation ? activeSituation : "Sacred Prayer";
+  const handleCategoryChange = (catId: string) => {
+    setSelectedCategoryId(catId);
+    const cat = categories.find((c) => c.id === catId);
+    if (cat && cat.situations.length > 0) {
+      setSelectedSituation(cat.situations[0]!);
+    } else {
+      setSelectedSituation("");
+    }
+  };
 
-  const handleSavePrayer = (e: React.FormEvent) => {
+  const handleCreateCategory = (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage("");
-
-    if (!selectedCategoryId) {
-      setErrorMessage("Please select a category.");
-      return;
-    }
-    if (!activeSituation) {
-      setErrorMessage("Please select or add a situation.");
-      return;
-    }
-    if (!prayerText.trim()) {
-      setErrorMessage("Prayer text cannot be empty.");
-      return;
-    }
+    if (!newCategoryName.trim()) return;
 
     startTransition(async () => {
-      const titleToSave =
-        addedCount > 0 ? `${prayerTitle} — Prayer ${addedCount + 1}` : prayerTitle;
-
-      const res = await createPrayerAction({
-        title: titleToSave,
-        categoryId: selectedCategoryId,
-        situation: activeSituation,
-        body: prayerText,
-        scriptureReference: scriptureRef,
-        scriptureText: scriptureText,
-        isFeatured,
-      });
-
-      if (res.success) {
-        setLastSavedTitle(titleToSave);
-        setAddedCount((prev) => prev + 1);
-        setPrayerText("");
-        setScriptureRef("");
-        setScriptureText("");
-      } else {
-        setErrorMessage(res.error ?? "Failed to save prayer.");
-      }
-    });
-  };
-
-  // Category Actions
-  const handleAddCategory = async () => {
-    if (!newCatName.trim()) return;
-    startTransition(async () => {
-      const res = await createCategoryAction(newCatName);
+      const res = await createCategoryAction(newCategoryName);
       if (res.success && res.category) {
-        const updated = [...categories, { ...res.category, situations: [] }];
-        setCategories(updated);
+        setCategories((prev) => [...prev, res.category]);
         setSelectedCategoryId(res.category.id);
-        setNewCatName("");
+        setSelectedSituation("");
+        setNewCategoryName("");
+        setShowCategoryModal(false);
+        setStatusMessage("Category created successfully.");
       } else {
-        setErrorMessage(res.error ?? "Failed to create category");
+        setStatusMessage(res.error ?? "Failed to create category.");
       }
     });
   };
 
-  const handleDeleteCategory = async (catId: string) => {
-    if (!confirm("Are you sure you want to delete this category?")) return;
+  const handleDeleteCategory = (catId: string) => {
+    if (!confirm("Are you sure you want to delete this collection and its situations?")) return;
     startTransition(async () => {
       const res = await deleteCategoryAction(catId);
       if (res.success) {
         const updated = categories.filter((c) => c.id !== catId);
         setCategories(updated);
-        if (selectedCategoryId === catId) {
-          setSelectedCategoryId(updated[0]?.id ?? "");
+        if (updated.length > 0) {
+          setSelectedCategoryId(updated[0]!.id);
+          setSelectedSituation(updated[0]!.situations[0] ?? "");
         }
-      } else {
-        setErrorMessage(res.error ?? "Failed to delete category");
+        setStatusMessage("Category deleted.");
       }
     });
   };
 
-  // Situation Actions
-  const handleAddSituation = async (catId: string, nameToAdd: string) => {
-    if (!nameToAdd.trim()) return;
+  const handleAddSituation = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSituationName.trim() || !selectedCategoryId) return;
+
     startTransition(async () => {
-      const res = await addSituationAction(catId, nameToAdd);
+      const res = await addSituationAction(selectedCategoryId, newSituationName);
       if (res.success && res.situations) {
         setCategories((prev) =>
-          prev.map((cat) =>
-            cat.id === catId ? { ...cat, situations: res.situations } : cat
-          )
+          prev.map((c) => (c.id === selectedCategoryId ? { ...c, situations: res.situations } : c))
         );
-        setSelectedSituation(nameToAdd.trim());
-        setNewSitName("");
-        setInlineSitInput("");
-        setShowInlineSitAdd(false);
-      } else {
-        setErrorMessage(res.error ?? "Failed to add situation");
+        setSelectedSituation(newSituationName.trim());
+        setNewSituationName("");
+        setStatusMessage("Situation added.");
       }
     });
   };
 
-  const handleRemoveSituation = async (catId: string, situationName: string) => {
+  const handleRemoveSituation = (sitName: string) => {
+    if (!confirm(`Remove situation "${sitName}"?`)) return;
     startTransition(async () => {
-      const res = await removeSituationAction(catId, situationName);
+      const res = await removeSituationAction(selectedCategoryId, sitName);
       if (res.success && res.situations) {
         setCategories((prev) =>
-          prev.map((cat) =>
-            cat.id === catId ? { ...cat, situations: res.situations } : cat
-          )
+          prev.map((c) => (c.id === selectedCategoryId ? { ...c, situations: res.situations } : c))
         );
-        if (selectedSituation === situationName) {
-          setSelectedSituation(res.situations[0] ?? "");
-        }
+        setSelectedSituation(res.situations[0] ?? "");
+        setStatusMessage("Situation removed.");
+      }
+    });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatusMessage("");
+
+    if (!title.trim() || !body.trim() || !selectedCategoryId) {
+      setStatusMessage("Please fill in Title, Prayer Text, and Category.");
+      return;
+    }
+
+    startTransition(async () => {
+      const res = await createPrayerAction({
+        title,
+        categoryId: selectedCategoryId,
+        situation: selectedSituation,
+        body,
+        description,
+        isFeatured,
+      });
+
+      if (res.success) {
+        setStatusMessage("Prayer saved successfully!");
+        setTitle("");
+        setBody("");
+        setDescription("");
+        setIsFeatured(false);
+        router.refresh();
       } else {
-        setErrorMessage(res.error ?? "Failed to remove situation");
+        setStatusMessage(res.error ?? "Failed to save prayer.");
       }
     });
   };
 
   return (
     <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] p-4 sm:p-8">
-      <div className="mx-auto max-w-4xl space-y-6">
+      <div className="mx-auto max-w-4xl space-y-8">
         <div className="flex items-center justify-between border-b border-[#eedad2] pb-4">
           <Link
             href="/admin"
             className="flex items-center space-x-2 text-xs uppercase tracking-[0.2em] font-semibold text-[#6b635e] hover:text-[#1f3a28] transition"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>Back to Curator</span>
+            <span>Back to Admin Hub</span>
           </Link>
-          <div className="flex items-center space-x-3">
-            <button
-              type="button"
-              onClick={() => setIsManagerOpen(true)}
-              className="inline-flex items-center space-x-1.5 rounded-lg border border-[#eedad2] bg-[#faf3f0] px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#2d5a3d] hover:bg-white shadow-sm transition"
-            >
-              <Settings2 className="h-3.5 w-3.5" />
-              <span>Manage / Clean Duplicates</span>
-            </button>
-            <span className="text-[10px] uppercase tracking-[0.2em] text-[#d4907a] font-bold">
-              Add Prayer Entry
-            </span>
-          </div>
+          <span className="text-[10px] uppercase tracking-[0.2em] text-[#d4907a] font-bold">
+            Sanctuary Curator Suite
+          </span>
         </div>
 
-        {lastSavedTitle && (
-          <div className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-emerald-900 shadow-sm animate-in fade-in">
-            <div className="flex items-center space-x-3">
-              <CheckCircle2 className="h-5 w-5 text-emerald-600 flex-shrink-0" />
-              <p className="text-xs">
-                Saved <strong className="font-semibold">&ldquo;{lastSavedTitle}&rdquo;</strong>. Ready for the next prayer!
-              </p>
-            </div>
-            <span className="rounded-full bg-emerald-200/80 px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase text-emerald-800">
-              {addedCount} Added this session
-            </span>
+        {statusMessage && (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-semibold text-emerald-800">
+            {statusMessage}
           </div>
         )}
 
-        {errorMessage && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-700">
-            {errorMessage}
-          </div>
-        )}
-
-        <form onSubmit={handleSavePrayer} className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 space-y-6 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Category & Situation Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 shadow-sm">
+            {/* Category */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#1f3a28]">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-[#1f3a28]">
                   1. Category *
                 </label>
                 <button
                   type="button"
-                  onClick={() => setIsManagerOpen(true)}
-                  className="text-[10px] uppercase tracking-wider text-[#2d5a3d] font-semibold hover:underline"
+                  onClick={() => setShowCategoryModal(true)}
+                  className="text-[10px] font-bold text-[#2d5a3d] hover:underline"
                 >
                   + Add Category
                 </button>
               </div>
 
-              <select
-                value={selectedCategoryId}
-                onChange={(e) => {
-                  setSelectedCategoryId(e.target.value);
-                  setSelectedSituation("");
-                }}
-                className="w-full rounded-xl border border-[#eedad2] bg-white px-4 py-3 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none shadow-sm"
-              >
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name} ({cat.situations?.length ?? 0} situations)
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#1f3a28]">
-                  2. Situation *
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowInlineSitAdd(!showInlineSitAdd)}
-                  className="text-[10px] uppercase tracking-wider text-[#2d5a3d] font-semibold hover:underline"
+              <div className="flex items-center space-x-2">
+                <select
+                  value={selectedCategoryId}
+                  onChange={(e) => handleCategoryChange(e.target.value)}
+                  className="w-full rounded-xl border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none"
                 >
-                  {showInlineSitAdd ? "Cancel" : "+ New Situation"}
-                </button>
-              </div>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name} ({cat.situations.length} situations)
+                    </option>
+                  ))}
+                </select>
 
-              {!showInlineSitAdd ? (
-                <div className="flex items-center space-x-2">
-                  <select
-                    value={activeSituation}
-                    onChange={(e) => setSelectedSituation(e.target.value)}
-                    className="w-full rounded-xl border border-[#eedad2] bg-white px-4 py-3 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none shadow-sm"
-                  >
-                    {currentSituations.length === 0 ? (
-                      <option value="">No situations yet — click &ldquo;+ New Situation&rdquo;</option>
-                    ) : (
-                      currentSituations.map((sit, idx) => (
-                        <option key={idx} value={sit}>
-                          {sit}
-                        </option>
-                      ))
-                    )}
-                  </select>
-
-                  {activeSituation && (
-                    <button
-                      type="button"
-                      title="Remove this situation from dropdown"
-                      onClick={() => handleRemoveSituation(selectedCategoryId, activeSituation)}
-                      className="rounded-xl border border-[#eedad2] bg-white p-3 text-[#6b635e] hover:border-red-300 hover:text-red-600 transition"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="text"
-                    placeholder="Type new situation name..."
-                    value={inlineSitInput}
-                    onChange={(e) => setInlineSitInput(e.target.value)}
-                    className="flex-1 rounded-xl border border-[#2d5a3d] bg-white px-4 py-2.5 text-xs text-[#1f3a28] focus:outline-none"
-                    autoFocus
-                  />
+                {currentCategory && (
                   <button
                     type="button"
-                    onClick={() => handleAddSituation(selectedCategoryId, inlineSitInput)}
-                    disabled={isPending || !inlineSitInput.trim()}
-                    className="rounded-xl bg-[#2d5a3d] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#1f3a28] transition disabled:opacity-50"
+                    onClick={() => handleDeleteCategory(currentCategory.id)}
+                    title="Delete Category"
+                    className="rounded-xl border border-[#eedad2] bg-white p-2.5 text-[#6b635e] hover:text-red-600 transition"
                   >
-                    Add
+                    <Trash2 className="h-4 w-4" />
                   </button>
-                </div>
-              )}
+                )}
+              </div>
+            </div>
+
+            {/* Situation */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-[#1f3a28]">
+                2. Situation *
+              </label>
+
+              <div className="flex items-center space-x-2">
+                <select
+                  value={selectedSituation}
+                  onChange={(e) => setSelectedSituation(e.target.value)}
+                  className="w-full rounded-xl border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none"
+                >
+                  <option value="">-- General / No Situation --</option>
+                  {currentCategory?.situations.map((sit, idx) => (
+                    <option key={idx} value={sit}>
+                      {sit}
+                    </option>
+                  ))}
+                </select>
+
+                {selectedSituation && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSituation(selectedSituation)}
+                    title="Remove Situation"
+                    className="rounded-xl border border-[#eedad2] bg-white p-2.5 text-[#6b635e] hover:text-red-600 transition"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Inline Add Situation */}
+              <div className="flex items-center space-x-2 pt-2">
+                <input
+                  type="text"
+                  placeholder="New situation name..."
+                  value={newSituationName}
+                  onChange={(e) => setNewSituationName(e.target.value)}
+                  className="w-full rounded-xl border border-[#eedad2] bg-white px-3.5 py-2 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddSituation}
+                  className="rounded-xl bg-[#2d5a3d] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#1f3a28] transition flex-shrink-0"
+                >
+                  + Add
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#1f3a28]">
-              3. Prayer Text *
-            </label>
-            <textarea
-              rows={8}
-              placeholder="Paste or write the devotional prayer text here..."
-              value={prayerText}
-              onChange={(e) => setPrayerText(e.target.value)}
-              required
-              className="w-full rounded-xl border border-[#eedad2] bg-white p-4 font-serif text-sm text-[#1f3a28] placeholder-[#6b635e]/50 focus:border-[#2d5a3d] focus:outline-none leading-relaxed shadow-sm"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          {/* Title & Prayer Text */}
+          <div className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 space-y-4 shadow-sm">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-semibold uppercase tracking-wider text-[#6b635e]">
-                Scripture Reference (Optional)
+              <label className="text-[10px] font-bold uppercase tracking-wider text-[#1f3a28]">
+                Prayer Title *
               </label>
               <input
                 type="text"
-                placeholder="e.g. Philippians 4:6-7"
-                value={scriptureRef}
-                onChange={(e) => setScriptureRef(e.target.value)}
-                className="w-full rounded-xl border border-[#eedad2] bg-white px-4 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none shadow-sm"
+                placeholder="e.g. Prayer for Inner Peace"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                className="w-full rounded-xl border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-semibold uppercase tracking-wider text-[#6b635e]">
-                Scripture Verse Text (Optional)
+              <label className="text-[10px] font-bold uppercase tracking-wider text-[#1f3a28]">
+                Prayer Text *
+              </label>
+              <textarea
+                rows={6}
+                placeholder="Paste or write the devotional prayer text here..."
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                required
+                className="w-full rounded-xl border border-[#eedad2] bg-white p-3.5 font-serif text-xs leading-relaxed text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-[#1f3a28]">
+                Scripture Reference &amp; Reflection (Optional)
               </label>
               <input
                 type="text"
-                placeholder="e.g. Do not be anxious about anything..."
-                value={scriptureText}
-                onChange={(e) => setScriptureText(e.target.value)}
-                className="w-full rounded-xl border border-[#eedad2] bg-white px-4 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none shadow-sm"
+                placeholder="e.g. Philippians 4:6-7 — Do not be anxious about anything..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full rounded-xl border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none"
               />
             </div>
-          </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-t border-[#eedad2] pt-6">
-            <label className="inline-flex items-center space-x-2.5 cursor-pointer">
+            <div className="flex items-center space-x-3 pt-2">
               <input
                 type="checkbox"
+                id="isFeatured"
                 checked={isFeatured}
                 onChange={(e) => setIsFeatured(e.target.checked)}
                 className="h-4 w-4 rounded border-[#eedad2] text-[#2d5a3d] focus:ring-[#2d5a3d]"
               />
-              <span className="text-xs font-medium text-[#6b635e]">
+              <label htmlFor="isFeatured" className="text-xs font-semibold text-[#1f3a28]">
                 Feature on Today&apos;s Prayer banner
-              </span>
-            </label>
-
-            <button
-              type="submit"
-              disabled={isPending}
-              className="inline-flex items-center justify-center space-x-2 rounded-xl bg-[#2d5a3d] px-8 py-3.5 text-xs font-bold uppercase tracking-[0.2em] text-white shadow-md hover:bg-[#1f3a28] transition disabled:opacity-50"
-            >
-              {isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Saving...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  <span>Save Prayer &amp; Next</span>
-                </>
-              )}
-            </button>
+              </label>
+            </div>
           </div>
+
+          <button
+            type="submit"
+            disabled={isPending}
+            className="w-full inline-flex items-center justify-center space-x-2 rounded-2xl bg-[#2d5a3d] py-4 text-xs font-bold uppercase tracking-[0.2em] text-white shadow-sm hover:bg-[#1f3a28] transition disabled:opacity-50"
+          >
+            {isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                <span>Save Prayer</span>
+              </>
+            )}
+          </button>
         </form>
 
-        {isManagerOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm animate-in fade-in">
-            <div className="relative max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 shadow-2xl space-y-6">
-              <div className="flex items-center justify-between border-b border-[#eedad2] pb-3">
-                <div className="flex items-center space-x-2">
-                  <Settings2 className="h-5 w-5 text-[#2d5a3d]" />
-                  <h3 className="font-serif text-lg font-bold text-[#1f3a28]">
-                    Manage Categories &amp; Clean Duplicates
-                  </h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsManagerOpen(false)}
-                  className="rounded-full p-1.5 text-[#6b635e] hover:bg-[#eedad2]/60 hover:text-[#1f3a28] transition"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              <div className="rounded-xl border border-[#eedad2] bg-white p-4 space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#1f3a28]">
-                  + Add New Category
-                </h4>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="text"
-                    placeholder="e.g. 17 — Healing & Restoration"
-                    value={newCatName}
-                    onChange={(e) => setNewCatName(e.target.value)}
-                    className="flex-1 rounded-lg border border-[#eedad2] px-3.5 py-2 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none"
-                  />
+        {/* Modal for new category */}
+        {showCategoryModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+            <div className="w-full max-w-md rounded-2xl bg-[#faf3f0] border border-[#eedad2] p-6 space-y-4 shadow-xl">
+              <h3 className="font-serif text-lg font-bold text-[#1f3a28]">Create New Category</h3>
+              <form onSubmit={handleCreateCategory} className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Category Name (e.g. Healing & Comfort)"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  required
+                  className="w-full rounded-xl border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none"
+                />
+                <div className="flex justify-end space-x-2">
                   <button
                     type="button"
-                    onClick={handleAddCategory}
-                    disabled={isPending || !newCatName.trim()}
-                    className="inline-flex items-center space-x-1 rounded-lg bg-[#2d5a3d] px-4 py-2 text-xs font-semibold text-white hover:bg-[#1f3a28] transition disabled:opacity-50"
+                    onClick={() => setShowCategoryModal(false)}
+                    className="rounded-xl border border-[#eedad2] px-4 py-2 text-xs font-semibold text-[#6b635e] hover:bg-white transition"
                   >
-                    <Plus className="h-3.5 w-3.5" />
-                    <span>Add</span>
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isPending}
+                    className="rounded-xl bg-[#2d5a3d] px-4 py-2 text-xs font-bold text-white hover:bg-[#1f3a28] transition"
+                  >
+                    Create
                   </button>
                 </div>
-              </div>
-
-              <div className="space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#1f3a28]">
-                  Categories &amp; Situations List
-                </h4>
-
-                <div className="space-y-4">
-                  {categories.map((cat) => (
-                    <div
-                      key={cat.id}
-                      className="rounded-xl border border-[#eedad2] bg-white p-4 space-y-3 shadow-xs"
-                    >
-                      <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-2">
-                        <span className="font-serif text-sm font-semibold text-[#1f3a28]">
-                          {cat.name}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteCategory(cat.id)}
-                          className="inline-flex items-center space-x-1 text-[11px] font-medium text-red-600 hover:text-red-800"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                          <span>Delete Category</span>
-                        </button>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2 pt-1">
-                        {cat.situations && cat.situations.length > 0 ? (
-                          cat.situations.map((sit, sitIdx) => (
-                            <span
-                              key={sitIdx}
-                              className="inline-flex items-center space-x-1.5 rounded-full border border-[#eedad2] bg-[#faf3f0] px-3 py-1 text-[11px] text-[#1f3a28]"
-                            >
-                              <span>{sit}</span>
-                              <button
-                                type="button"
-                                title="Delete situation"
-                                onClick={() => handleRemoveSituation(cat.id, sit)}
-                                className="text-[#6b635e] hover:text-red-600 transition"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </span>
-                          ))
-                        ) : (
-                          <p className="text-[11px] text-[#6b635e] italic">No situations added yet.</p>
-                        )}
-                      </div>
-
-                      <div className="flex items-center space-x-2 pt-2">
-                        <input
-                          type="text"
-                          placeholder="Add new situation to this category..."
-                          value={selectedCategoryId === cat.id ? newSitName : ""}
-                          onChange={(e) => {
-                            setSelectedCategoryId(cat.id);
-                            setNewSitName(e.target.value);
-                          }}
-                          className="flex-1 rounded-lg border border-[#eedad2] px-3 py-1.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleAddSituation(cat.id, newSitName)}
-                          disabled={isPending || !newSitName.trim() || selectedCategoryId !== cat.id}
-                          className="rounded-lg bg-[#2d5a3d] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#1f3a28] transition disabled:opacity-50"
-                        >
-                          + Add
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="text-right border-t border-[#eedad2] pt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsManagerOpen(false)}
-                  className="rounded-xl bg-[#2d5a3d] px-6 py-2.5 text-xs font-semibold text-white hover:bg-[#1f3a28] transition"
-                >
-                  Done
-                </button>
-              </div>
+              </form>
             </div>
           </div>
         )}
