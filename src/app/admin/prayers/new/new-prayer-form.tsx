@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Plus, Trash2, Sparkles, Loader2 } from "lucide-react";
-import { getAdminCategories, createCategoryAction, deleteCategoryAction, addSituationAction, removeSituationAction, createPrayerAction } from "~/app/actions/admin";
+import { ArrowLeft, Trash2, Sparkles, Loader2 } from "lucide-react";
+import { createCategoryAction, deleteCategoryAction, addSituationAction, removeSituationAction, createPrayerAction } from "~/app/actions/admin";
 
 interface CategoryData {
   id: string;
@@ -13,11 +13,11 @@ interface CategoryData {
   situations: string[];
 }
 
-export function NewPrayerForm() {
+export function NewPrayerForm({ initialCategories }: { initialCategories: CategoryData[] }) {
   const router = useRouter();
-  const [categories, setCategories] = useState<CategoryData[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState("");
-  const [selectedSituation, setSelectedSituation] = useState("");
+  const [categories, setCategories] = useState<CategoryData[]>(initialCategories);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(initialCategories[0]?.id ?? "");
+  const [selectedSituation, setSelectedSituation] = useState(initialCategories[0]?.situations[0] ?? "");
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newSituationName, setNewSituationName] = useState("");
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -27,18 +27,6 @@ export function NewPrayerForm() {
   const [isFeatured, setIsFeatured] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [isPending, startTransition] = useTransition();
-
-  useEffect(() => {
-    getAdminCategories().then((res) => {
-      if (res.success && res.categories.length > 0) {
-        setCategories(res.categories);
-        setSelectedCategoryId(res.categories[0]!.id);
-        if (res.categories[0]!.situations.length > 0) {
-          setSelectedSituation(res.categories[0]!.situations[0]!);
-        }
-      }
-    });
-  }, []);
 
   const currentCategory = categories.find((c) => c.id === selectedCategoryId);
 
@@ -173,9 +161,7 @@ export function NewPrayerForm() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Category & Situation Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 shadow-sm">
-            {/* Category */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-[#1f3a28]">
@@ -216,7 +202,6 @@ export function NewPrayerForm() {
               </div>
             </div>
 
-            {/* Situation */}
             <div className="space-y-2">
               <label className="text-[10px] font-bold uppercase tracking-wider text-[#1f3a28]">
                 2. Situation *
@@ -248,7 +233,6 @@ export function NewPrayerForm() {
                 )}
               </div>
 
-              {/* Inline Add Situation */}
               <div className="flex items-center space-x-2 pt-2">
                 <input
                   type="text"
@@ -268,7 +252,6 @@ export function NewPrayerForm() {
             </div>
           </div>
 
-          {/* Title & Prayer Text */}
           <div className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 space-y-4 shadow-sm">
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold uppercase tracking-wider text-[#1f3a28]">
@@ -341,7 +324,6 @@ export function NewPrayerForm() {
           </button>
         </form>
 
-        {/* Modal for new category */}
         {showCategoryModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
             <div className="w-full max-w-md rounded-2xl bg-[#faf3f0] border border-[#eedad2] p-6 space-y-4 shadow-xl">
