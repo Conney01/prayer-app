@@ -2,7 +2,19 @@
 
 import { db } from "~/server/db";
 
-// Safaricom Daraja STK Push Integration (Sandbox / Production)
+interface DarajaTokenResponse {
+  access_token?: string;
+  [key: string]: unknown;
+}
+
+interface DarajaStkResponse {
+  ResponseCode?: string;
+  CheckoutRequestID?: string;
+  MerchantRequestID?: string;
+  errorMessage?: string;
+  [key: string]: unknown;
+}
+
 export async function initiateMpesaDonationAction(data: {
   amount: number;
   phoneNumber: string;
@@ -17,7 +29,6 @@ export async function initiateMpesaDonationAction(data: {
       return { success: false, error: "Please provide a valid phone number and amount." };
     }
 
-    // Format phone number to 254XXXXXXXXX format
     let formattedPhone = rawPhone.replace(/\D/g, "");
     if (formattedPhone.startsWith("0")) {
       formattedPhone = "254" + formattedPhone.slice(1);
@@ -31,15 +42,12 @@ export async function initiateMpesaDonationAction(data: {
 
     const consumerKey = process.env.MPESA_CONSUMER_KEY;
     const consumerSecret = process.env.MPESA_CONSUMER_SECRET;
-    const shortcode = process.env.MPESA_SHORTCODE ?? "174379"; // Safaricom Sandbox default
+    const shortcode = process.env.MPESA_SHORTCODE ?? "174379";
     const passkey = process.env.MPESA_PASSKEY;
     const callbackUrl = process.env.MPESA_CALLBACK_URL ?? "https://sanctuary.conney.me/api/mpesa/callback";
     const environment = process.env.MPESA_ENV ?? "sandbox";
 
-    // If credentials aren't fully configured yet, simulate successful STK Push for testing UI
     if (!consumerKey || !consumerSecret || !passkey) {
-      console.warn("Daraja credentials missing. Simulating sandbox STK push response.");
-      
       const mockCheckoutId = `ws_CO_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       
       await db.donation.create({
@@ -49,7 +57,7 @@ export async function initiateMpesaDonationAction(data: {
           checkoutRequestId: mockCheckoutId,
           status: "PENDING",
           isAnonymous: Boolean(data.isAnonymous),
-          donorName: data.isAnonymous ? null : (data.donorName?.trim() || "Sanctuary Seeker"),
+          donorName: data.isAnonymous ? null : (data.donorName?.trim() ?? "Sanctuary Seeker"),
         },
       });
 
@@ -60,7 +68,6 @@ export async function initiateMpesaDonationAction(data: {
       };
     }
 
-    // 1. Get OAuth Access Token from Safaricom Daraja
     const authBuffer = Buffer.from(`${consumerKey}:${consumerSecret}`).toString("base64");
     const authUrl =
       environment === "production"
@@ -74,21 +81,19 @@ export async function initiateMpesaDonationAction(data: {
       },
     });
 
-    const tokenData = await tokenRes.json();
+    const tokenData = (await tokenRes.json()) as DarajaTokenResponse;
     if (!tokenData.access_token) {
       return { success: false, error: "Failed to authenticate with M-Pesa Daraja API." };
     }
 
     const accessToken = tokenData.access_token;
 
-    // 2. Generate Password and Timestamp
     const timestamp = new Date()
       .toISOString()
       .replace(/[^0-9]/g, "")
       .slice(0, 14);
     const password = Buffer.from(`${shortcode}${passkey}${timestamp}`).toString("base64");
 
-    // 3. Initiate STK Push
     const stkUrl =
       environment === "production"
         ? "https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
@@ -115,28 +120,28 @@ export async function initiateMpesaDonationAction(data: {
       }),
     });
 
-    const stkData = await stkRes.json();
+    const stkData = (await stkRes.json()) as DarajaStkResponse;
 
     if (stkData.ResponseCode === "0") {
       await db.donation.create({
         data: {
           amount,
           phoneNumber: formattedPhone,
-          checkoutRequestId: stkData.CheckoutRequestID,
-          merchantRequestId: stkData.MerchantRequestID,
+          checkoutRequestId: stkData.CheckoutRequestID ?? null,
+          merchantRequestId: stkData.MerchantRequestID ?? null,
           status: "PENDING",
           isAnonymous: Boolean(data.isAnonymous),
-          donorName: data.isAnonymous ? null : (data.donorName?.trim() || "Sanctuary Seeker"),
+          donorName: data.isAnonymous ? null : (data.donorName?.trim() ?? "Sanctuary Seeker"),
         },
       });
 
       return {
         success: true,
         message: "STK Push sent successfully! Check your phone to enter your M-Pesa PIN.",
-        checkoutRequestId: stkData.CheckoutRequestID,
+        checkoutRequestId: stkData.CheckoutRequestID ?? "",
       };
     } else {
-      return { success: false, error: stkData.errorMessage || "M-Pesa transaction request failed." };
+      return { success: false, error: stkData.errorMessage ?? "M-Pesa transaction request failed." };
     }
   } catch (error) {
     console.error("M-Pesa donation error:", error);
