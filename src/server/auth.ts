@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { db } from "~/server/db";
-import { hash, compare } from "bcryptjs";
+import { compare } from "bcryptjs";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -22,7 +22,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const email = credentials.email as string;
         const password = credentials.password as string;
 
-        let user = await db.user.findUnique({ where: { email } });
+        const user = await db.user.findUnique({ where: { email } });
 
         if (!user || !user.password) {
           return null;
@@ -31,11 +31,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const isValid = await compare(password, user.password);
         if (!isValid) return null;
 
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-        };
+        // Return the full user object to satisfy NextAuth & Prisma types
+        return user;
       },
     }),
   ],
