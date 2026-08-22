@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { Flame, Sparkles, BookOpen, ArrowRight, Heart, Bookmark, Shield, LogOut, Sun } from "lucide-react";
+import { Flame, Sparkles, BookOpen, ArrowRight, Heart, Bookmark, Shield, Sun } from "lucide-react";
 import { getUserStreak } from "~/lib/streak";
 import { completePrayerAction } from "~/app/actions/prayer-interactions";
 import { Footer } from "~/components/footer";
+import { LogoutButton } from "~/components/logout-btn";
 
 export const dynamic = "force-dynamic";
 
@@ -122,13 +123,7 @@ export default async function DashboardPage() {
               <span>Support Hub</span>
             </Link>
 
-            <Link
-              href="/api/auth/signout"
-              className="inline-flex items-center space-x-1.5 rounded-xl border border-[#eedad2] bg-white px-3.5 py-2 text-xs font-semibold text-[#6b635e] hover:text-red-600 hover:bg-[#faf3f0] transition shadow-2xs"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              <span>Log out</span>
-            </Link>
+            <LogoutButton />
           </div>
         </div>
 
