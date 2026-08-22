@@ -38,8 +38,14 @@ export default async function PrayerPage(props: {
     isSaved = !!saved;
   }
 
+  // Split prayer body into clean paragraphs for a reverent devotional feel
+  const paragraphs = prayer.body
+    .split(/\r?\n\r?\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
   return (
-    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] py-8 px-4 sm:px-8">
+    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] py-10 px-4 sm:px-8">
       <div className="mx-auto max-w-3xl space-y-8">
         <div className="flex items-center justify-between border-b border-[#eedad2] pb-4">
           <Link
@@ -55,8 +61,8 @@ export default async function PrayerPage(props: {
           </div>
         </div>
 
-        <article className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-8 sm:p-12 shadow-sm space-y-8">
-          <div className="space-y-2 border-b border-[#eedad2]/60 pb-6">
+        <article className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-8 sm:p-14 shadow-sm space-y-8">
+          <div className="space-y-3 border-b border-[#eedad2]/60 pb-6">
             <div className="flex items-center space-x-2 text-[#d4907a] text-xs font-semibold uppercase tracking-wider">
               <Sparkles className="h-4 w-4" />
               <span>{prayer.situation?.name ?? prayer.category.name}</span>
@@ -66,8 +72,16 @@ export default async function PrayerPage(props: {
             </h1>
           </div>
 
-          <div className="prose prose-stone font-serif text-base sm:text-lg text-[#1f3a28] leading-relaxed whitespace-pre-wrap">
-            {prayer.body}
+          <div className="font-serif text-base sm:text-lg text-[#1f3a28] leading-[2.1] space-y-6">
+            {paragraphs.length > 0 ? (
+              paragraphs.map((para, idx) => (
+                <p key={idx} className="indent-4 sm:indent-6">
+                  {para}
+                </p>
+              ))
+            ) : (
+              <p>{prayer.body}</p>
+            )}
           </div>
         </article>
       </div>
