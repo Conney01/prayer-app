@@ -40,7 +40,7 @@ export function PrayerForm({
     .map((p) => p.title.split(/ [-—] /)[0]?.trim())
     .filter(Boolean) as string[];
 
-  // Preserve exact dashboard order, appending any extra custom situations created in DB
+  // Keep the exact dashboard order
   const allSituations = Array.from(new Set([...defaultList, ...existingDbSituations]));
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -169,7 +169,7 @@ export function PrayerForm({
                 : "Select a category first..."}
             </option>
             {allSituations.map((sit) => {
-              // Exact base title matching
+              // Exact string equality match prevents "Prayer for Forgiveness" from capturing "Prayer for Forgiveness of Sins"
               const count = prayers.filter((p) => {
                 if (p.categoryId !== categoryId) return false;
                 const base = p.title.split(/ [-—] /)[0]?.trim();
