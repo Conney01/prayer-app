@@ -38,22 +38,19 @@ export default async function PrayerPage(props: {
     isSaved = !!saved;
   }
 
-  // Split prayer body into clean paragraphs for a reverent devotional feel
-  const paragraphs = prayer.body
-    .split(/\r?\n\r?\n/)
-    .map((p) => p.trim())
-    .filter(Boolean);
+  // Preserve the original text flow
+  const paragraphs = prayer.body.split(/\n\n+/);
 
   return (
     <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] py-10 px-4 sm:px-8">
-      <div className="mx-auto max-w-3xl space-y-8">
+      <div className="mx-auto max-w-2xl space-y-8">
         <div className="flex items-center justify-between border-b border-[#eedad2] pb-4">
           <Link
             href={prayer.category ? `/categories/${prayer.category.slug}` : "/dashboard"}
             className="inline-flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider text-[#6b635e] hover:text-[#1f3a28] transition"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>{prayer.category?.name ?? "Back to Dashboard"}</span>
+            <span>{prayer.category?.name ?? "Back"}</span>
           </Link>
 
           <div className="flex items-center space-x-3">
@@ -61,27 +58,23 @@ export default async function PrayerPage(props: {
           </div>
         </div>
 
-        <article className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-8 sm:p-14 shadow-sm space-y-8">
-          <div className="space-y-3 border-b border-[#eedad2]/60 pb-6">
-            <div className="flex items-center space-x-2 text-[#d4907a] text-xs font-semibold uppercase tracking-wider">
-              <Sparkles className="h-4 w-4" />
+        <article className="space-y-10 text-center">
+          <div className="space-y-4">
+            <div className="flex items-center justify-center space-x-2 text-[#d4907a] text-[10px] font-bold uppercase tracking-[0.2em]">
+              <Sparkles className="h-3.5 w-3.5" />
               <span>{prayer.situation?.name ?? prayer.category.name}</span>
             </div>
-            <h1 className="font-serif text-2xl sm:text-4xl font-bold text-[#1f3a28] leading-tight">
+            <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#1f3a28]">
               {prayer.title}
             </h1>
           </div>
 
-          <div className="font-serif text-base sm:text-lg text-[#1f3a28] leading-[2.1] space-y-6">
-            {paragraphs.length > 0 ? (
-              paragraphs.map((para, idx) => (
-                <p key={idx} className="indent-4 sm:indent-6">
-                  {para}
-                </p>
-              ))
-            ) : (
-              <p>{prayer.body}</p>
-            )}
+          <div className="font-serif text-base sm:text-lg text-[#1f3a28] leading-[1.8] space-y-8">
+            {paragraphs.map((para, idx) => (
+              <p key={idx} className="max-w-xl mx-auto">
+                {para}
+              </p>
+            ))}
           </div>
         </article>
       </div>
