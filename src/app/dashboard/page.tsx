@@ -11,11 +11,9 @@ export default async function DashboardPage() {
   const userId = session?.user?.id;
   const userRole = session?.user?.role;
 
-  // Retrieve user streak safely from database (never wiped by UI updates)
   const streak = userId ? await getUserStreak(userId) : { streakCount: 0 };
   const streakCount = streak?.streakCount ?? 0;
 
-  // Automated daily scripture & reflection rotation based on date
   const dailyReflections = [
     {
       verse: "Rejoice always, pray continually, give thanks in all circumstances; for this is God's will for you in Christ Jesus.",
@@ -35,11 +33,10 @@ export default async function DashboardPage() {
   ];
 
   const todayIndex = new Date().getDate() % dailyReflections.length;
-  const todayAnchor = dailyReflections[todayIndex];
+  const todayAnchor = dailyReflections[todayIndex] ?? dailyReflections[0];
 
-  // Calculate current week days dynamically for the streak calendar
   const today = new Date();
-  const currentDayOfWeek = today.getDay(); // 0 (Sun) to 6 (Sat)
+  const currentDayOfWeek = today.getDay();
   
   const days = [
     { label: "SAT", offset: -6 + ((currentDayOfWeek + 1) % 7) },
@@ -141,7 +138,6 @@ export default async function DashboardPage() {
             </span>
           </div>
 
-          {/* Week Days Row */}
           <div className="grid grid-cols-7 gap-2 pt-2 border-t border-[#eedad2]/60">
             {days.map((d, index) => {
               const targetDate = new Date();
@@ -193,9 +189,9 @@ export default async function DashboardPage() {
                 Scripture Anchor
               </span>
               <blockquote className="font-serif text-base sm:text-lg text-[#1f3a28] italic leading-relaxed">
-                &ldquo;{todayAnchor.verse}&rdquo;
+                &ldquo;{todayAnchor?.verse}&rdquo;
               </blockquote>
-              <p className="text-xs text-[#6b635e] font-serif font-semibold pt-1">— {todayAnchor.reference}</p>
+              <p className="text-xs text-[#6b635e] font-serif font-semibold pt-1">— {todayAnchor?.reference}</p>
             </div>
 
             <div className="space-y-2 pt-2">
@@ -203,7 +199,7 @@ export default async function DashboardPage() {
                 Today&apos;s Reflection
               </span>
               <p className="font-serif text-sm sm:text-base text-[#1f3a28] leading-relaxed">
-                {todayAnchor.reflection}
+                {todayAnchor?.reflection}
               </p>
             </div>
           </div>
