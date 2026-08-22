@@ -40,6 +40,7 @@ export function PrayerForm({
     .map((p) => p.title.split(/ [-—] /)[0]?.trim())
     .filter(Boolean) as string[];
 
+  // Pure exact match from master map + any newly added custom situations from DB
   const allSituations = Array.from(new Set([...defaultList, ...existingDbSituations])).sort();
 
   const handleSubmit = (e: React.FormEvent) => {
