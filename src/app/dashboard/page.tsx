@@ -1,7 +1,7 @@
 import { auth, signOut } from "~/server/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LogOut, Heart, Flame } from "lucide-react";
+import { LogOut, Heart, Flame, BookOpen } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -10,8 +10,8 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Get the first name or fallback gracefully
-  const firstName = session.user.name?.split(" ")[0] || "Friend";
+  // Get the first name or fallback gracefully to Aron
+  const firstName = session.user.name?.split(" ")[0] || "Aron";
 
   return (
     <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] selection:bg-[#eedad2]">
