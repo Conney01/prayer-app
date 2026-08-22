@@ -36,7 +36,7 @@ export const authConfig = {
           where: { email: (credentials.email as string).toLowerCase().trim() },
         });
 
-        if (!user || !user.password) {
+        if (!user?.password) {
           return null;
         }
 

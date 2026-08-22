@@ -188,7 +188,7 @@ export async function createPrayerAction(
     let categoryId = "";
     let situation = "";
     let body = "";
-    let description = "";
+    
     let isFeatured = false;
 
     if (data instanceof FormData) {
@@ -282,7 +282,7 @@ export async function updatePrayerAction(
     let categoryId = "";
     let situation = "";
     let body = "";
-    let description = "";
+    
     let isFeatured = false;
     let isPublished = true;
 

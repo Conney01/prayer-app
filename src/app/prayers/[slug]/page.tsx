@@ -21,7 +21,7 @@ export default async function PrayerPage(props: {
     },
   });
 
-  if (!prayer || !prayer.isPublished) {
+  if (!prayer?.isPublished) {
     notFound();
   }
 
