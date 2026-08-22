@@ -1,138 +1,44 @@
-"use client";
-
-import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { ArrowLeft } from "lucide-react";
+import { LoginForm } from "./login-form";
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      const res = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (res?.error) {
-        setError("Invalid email or password. Please try again.");
-        setLoading(false);
-      } else {
-        router.push("/dashboard");
-        router.refresh();
-      }
-    } catch {
-      setError("An unexpected error occurred. Please try again.");
-      setLoading(false);
-    }
-  }
-
-  function handleGoogleSignIn() {
-    void signIn("google", { callbackUrl: "/dashboard" });
-  }
-
   return (
-    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center px-4">
-        <Link href="/" className="inline-flex items-center space-x-3 group">
-          <div className="relative h-10 w-10 overflow-hidden rounded-lg border border-[#eedad2] bg-[#faf3f0] shadow-sm">
-            <Image src="/logo.jpg" alt="Logo" fill sizes="40px" className="object-cover" priority />
-          </div>
-          <span className="font-serif text-lg font-semibold uppercase tracking-[0.25em] text-[#1f3a28]">
-            Sanctuary
-          </span>
-        </Link>
-        <h2 className="mt-4 font-serif text-2xl sm:text-3xl font-light italic text-[#1f3a28]">
-          Return to Stillness
-        </h2>
-        <p className="mt-1 text-xs text-[#6b635e]">Sign in to continue your daily prayer rhythm</p>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">
-        <div className="border border-[#eedad2] bg-[#faf3f0] px-6 py-8 sm:p-10 shadow-sm space-y-6">
-          {error && (
-            <div className="border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center space-x-3 border border-[#eedad2] bg-white py-3 px-4 text-xs uppercase tracking-[0.18em] font-medium text-[#1f3a28] hover:bg-[#fdf0ec] transition cursor-pointer"
+    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] flex flex-col justify-between py-8 px-4 sm:px-8">
+      <div className="max-w-md mx-auto w-full space-y-6">
+        
+        {/* Back to Home Button */}
+        <div>
+          <Link
+            href="/"
+            className="inline-flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider text-[#6b635e] hover:text-[#1f3a28] transition"
           >
-            <span>Continue with Google</span>
-          </button>
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Home</span>
+          </Link>
+        </div>
 
-          <div className="relative flex items-center justify-center">
-            <div className="w-full border-t border-[#eedad2]" />
-            <span className="bg-[#faf3f0] px-3 text-[10px] uppercase tracking-[0.2em] text-[#6b635e] absolute">
-              Or with email
-            </span>
+        {/* Login Header & Form container */}
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white border border-[#eedad2] shadow-2xs mb-2">
+            <span className="font-serif font-bold text-lg text-[#1f3a28]">✝</span>
           </div>
+          <h1 className="font-serif text-3xl font-bold text-[#1f3a28]">
+            Return to Stillness
+          </h1>
+          <p className="text-xs text-[#6b635e]">
+            Sign in to continue your daily prayer rhythm
+          </p>
+        </div>
 
-          <form
-            onSubmit={(e) => {
-              void handleSubmit(e);
-            }}
-            className="space-y-4 pt-2"
-          >
-            <div>
-              <label className="block text-[10px] uppercase tracking-[0.2em] font-medium text-[#1f3a28] mb-1.5">
-                Email Address
-              </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[10px] uppercase tracking-[0.2em] font-medium text-[#1f3a28] mb-1.5">
-                Password
-              </label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#2d5a3d] py-3 text-xs font-medium uppercase tracking-[0.2em] text-white hover:bg-[#1f3a28] transition disabled:opacity-50 cursor-pointer"
-            >
-              {loading ? "Signing in..." : "Sign In"}
-            </button>
-          </form>
-
-          <div className="text-center pt-2 border-t border-[#eedad2]/60">
-            <p className="text-xs text-[#6b635e]">
-              Don&apos;t have an account?{" "}
-              <Link href="/register" className="font-semibold text-[#2d5a3d] hover:underline">
-                Create one
-              </Link>
-            </p>
-          </div>
+        <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-2xs">
+          <LoginForm />
         </div>
       </div>
+
+      <footer className="text-center text-xs text-[#6b635e] font-serif pt-8">
+        <p>© 2026 Sanctuary. Grace over perfection.</p>
+      </footer>
     </div>
   );
 }
