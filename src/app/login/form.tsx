@@ -17,7 +17,20 @@ export function LoginForm() {
       return;
     }
     setError("");
-    await signIn("credentials", { email, password, callbackUrl: "/dashboard" });
+    try {
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+      if (res?.error) {
+        setError("Invalid email or password.");
+      } else {
+        window.location.href = "/dashboard";
+      }
+    } catch {
+      setError("An unexpected error occurred during sign in.");
+    }
   };
 
   const handleGoogleSignIn = async () => {
@@ -26,7 +39,12 @@ export function LoginForm() {
       return;
     }
     setError("");
-    await signIn("google", { callbackUrl: "/dashboard" });
+    try {
+      await signIn("google", { callbackUrl: "/dashboard" });
+    } catch (err) {
+      console.error("Google Sign-In Exception:", err);
+      setError("Failed to connect to Google. Please check environment variables.");
+    }
   };
 
   return (
