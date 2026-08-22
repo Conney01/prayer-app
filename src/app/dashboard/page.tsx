@@ -1,118 +1,280 @@
-import { auth, signOut } from "~/server/auth";
-import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LogOut, Heart, Flame, BookOpen } from "lucide-react";
+import { auth } from "~/server/auth";
+import { db } from "~/server/db";
+import { Flame, Sparkles, BookOpen, ArrowRight, Heart, Bookmark, Shield, Sun } from "lucide-react";
+import { getUserStreak } from "~/lib/streak";
+import { completePrayerAction } from "~/app/actions/prayer-interactions";
+import { Footer } from "~/components/footer";
+import { LogoutButton } from "~/components/logout-btn";
+
+export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const session = await auth();
+  const userId = session?.user?.id;
+  const userRole = session?.user?.role;
 
-  if (!session?.user) {
-    redirect("/login");
+  if (userId) {
+    try {
+      await completePrayerAction();
+    } catch {
+      // Graceful fallback
+    }
   }
 
-  // Get the first name or fallback gracefully to Aron using nullish coalescing
-  const firstName = session.user.name?.split(" ")[0] ?? "Aron";
+  const streak = userId ? await getUserStreak(userId) : { streakCount: 1 };
+  const streakCount = Math.max(1, streak?.streakCount ?? 1);
+
+  const dailyReflections = [
+    {
+      verse: "Rejoice always, pray continually, give thanks in all circumstances; for this is God's will for you in Christ Jesus.",
+      reference: "1 Thessalonians 5:16-18",
+      reflection: "In moments of quiet stillness, God invites us to release our heavy burdens. True prayer is not just about asking, but about resting in His constant presence throughout your day.",
+    },
+    {
+      verse: "Cast all your anxiety on him because he cares for you.",
+      reference: "1 Peter 5:7",
+      reflection: "Whatever weighs on your mind right now—uncertainties, pressures, or fears—take a deep breath and gently place them in God's capable hands.",
+    },
+    {
+      verse: "The Lord is close to the brokenhearted and saves those who are crushed in spirit.",
+      reference: "Psalm 34:18",
+      reflection: "Your vulnerability is never hidden from God. He draws nearest precisely when your heart feels most tender and weary.",
+    },
+  ];
+
+  const todayIndex = new Date().getDate() % dailyReflections.length;
+  const todayAnchor = dailyReflections[todayIndex] ?? dailyReflections[0];
+
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  
+  const sundayDate = new Date(today);
+  sundayDate.setDate(today.getDate() - dayOfWeek);
+
+  const days = Array.from({ length: 7 }).map((_, index) => {
+    const d = new Date(sundayDate);
+    d.setDate(sundayDate.getDate() + index);
+    const labels = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    const isToday = d.toDateString() === today.toDateString();
+
+    return {
+      label: labels[index],
+      dateNum: d.getDate(),
+      isToday,
+    };
+  });
+
+  const categories = await db.category.findMany({
+    include: {
+      situations: {
+        include: {
+          prayers: {
+            where: { isPublished: true },
+          },
+        },
+      },
+      prayers: {
+        where: { isPublished: true },
+      },
+    },
+    orderBy: { sortOrder: "asc" },
+  });
 
   return (
-    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] selection:bg-[#eedad2]">
-      
-      {/* Top Navigation */}
-      <header className="w-full border-b border-[#eedad2]/60 bg-white/50 backdrop-blur-md sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="font-serif font-bold text-xs tracking-wide text-[#1f3a28] hover:text-[#2d5a3d] transition">
-            • PRAYER SANCTUARY
-          </Link>
+    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] flex flex-col justify-between">
+      <div className="py-8 px-4 sm:px-8 max-w-5xl mx-auto w-full space-y-10">
+        
+        {/* Top Header & Action Buttons */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-[#eedad2] pb-6 gap-4">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">
+              Sanctuary Space
+            </span>
+            <h1 className="font-serif text-3xl font-bold text-[#1f3a28] mt-1">
+              Welcome back, {session?.user?.name ?? "Friend"}
+            </h1>
+          </div>
           
-          <div className="flex items-center space-x-4">
-            <Link href="/dashboard/saved" className="hidden sm:flex items-center space-x-1.5 text-[11px] font-semibold uppercase tracking-widest text-[#6b635e] hover:text-[#1f3a28] transition bg-white px-3 py-1.5 rounded-lg border border-[#eedad2] shadow-2xs">
-              <Heart className="h-3.5 w-3.5" />
+          <div className="flex items-center flex-wrap gap-2">
+            {userRole === "ADMIN" && (
+              <Link
+                href="/admin"
+                className="inline-flex items-center space-x-1.5 rounded-xl border border-[#2d5a3d] bg-[#2d5a3d] text-white px-3.5 py-2 text-xs font-semibold hover:bg-[#1f3a28] transition shadow-2xs"
+              >
+                <Shield className="h-3.5 w-3.5" />
+                <span>Admin Panel</span>
+              </Link>
+            )}
+
+            <Link
+              href="/dashboard/saved"
+              className="inline-flex items-center space-x-1.5 rounded-xl border border-[#eedad2] bg-white px-3.5 py-2 text-xs font-semibold text-[#1f3a28] hover:bg-[#faf3f0] transition shadow-2xs"
+            >
+              <Bookmark className="h-3.5 w-3.5 text-[#2d5a3d]" />
               <span>Saved</span>
             </Link>
-            
-            <form
-              action={async () => {
-                "use server";
-                await signOut({ redirectTo: "/" });
-              }}
+
+            <Link
+              href="/support"
+              className="inline-flex items-center space-x-1.5 rounded-xl border border-[#eedad2] bg-white px-3.5 py-2 text-xs font-semibold text-[#1f3a28] hover:bg-[#faf3f0] transition shadow-2xs"
             >
-              <button
-                type="submit"
-                className="flex items-center space-x-1.5 text-[11px] font-semibold uppercase tracking-widest text-[#6b635e] hover:text-[#1f3a28] transition bg-white px-3 py-1.5 rounded-lg border border-[#eedad2] shadow-2xs cursor-pointer"
-              >
-                <LogOut className="h-3.5 w-3.5" />
-                <span>Log out</span>
-              </button>
-            </form>
+              <Heart className="h-3.5 w-3.5 text-[#d4907a]" />
+              <span>Support Hub</span>
+            </Link>
+
+            <LogoutButton />
           </div>
         </div>
-      </header>
 
-      <main className="max-w-4xl mx-auto px-6 py-12 space-y-8">
-        
-        {/* Welcome Header */}
-        <div className="space-y-2">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-[#d4907a]">Sanctuary Space</span>
-          <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#1f3a28]">
-            Welcome back, {firstName}
-          </h1>
-        </div>
-
-        {/* Streak & Activity Card */}
-        <div className="rounded-3xl border border-[#eedad2] bg-white/70 p-6 sm:p-8 shadow-2xs space-y-6">
-          <div className="flex items-center justify-between">
+        {/* 7-Day Streak Calendar Bar (Sun - Sat) */}
+        <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-2xs space-y-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div className="flex items-center space-x-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#fdf0ec] text-[#d4907a]">
-                <Flame className="h-5 w-5" />
+              <div className="rounded-full bg-[#fdf0ec] p-2 border border-[#eedad2]">
+                <Flame className="h-5 w-5 text-[#d4907a]" />
               </div>
               <div>
-                <h3 className="font-serif font-bold text-[#1f3a28]">1 Day in Stillness</h3>
-                <p className="text-[11px] text-[#6b635e]">Active streak • Every breath in prayer counts.</p>
+                <h3 className="font-serif text-lg font-bold text-[#1f3a28]">
+                  {streakCount} {streakCount === 1 ? "Day" : "Days"} in Stillness
+                </h3>
+                <p className="text-xs text-[#6b635e]">
+                  Active streak • Every breath in prayer counts.
+                </p>
               </div>
             </div>
-            <div className="hidden sm:block text-[10px] font-medium uppercase tracking-widest text-[#2d5a3d] bg-[#fdf0ec] px-3 py-1.5 rounded-full border border-[#eedad2]">
+
+            <span className="rounded-full border border-[#eedad2] bg-white px-4 py-1.5 text-[11px] font-semibold text-[#1f3a28] shadow-2xs">
               Grace over perfection
-            </div>
+            </span>
           </div>
 
-          {/* Simple weekly visual */}
-          <div className="grid grid-cols-7 gap-2 pt-2">
-            {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((day, i) => (
-              <div key={day} className={`flex flex-col items-center justify-center py-3 rounded-xl border ${i === 6 ? 'border-[#d4907a] bg-[#fdf0ec]' : 'border-[#eedad2] bg-white'} text-[10px]`}>
-                <span className={`font-bold ${i === 6 ? 'text-[#d4907a]' : 'text-[#6b635e]'}`}>{day}</span>
-                <span className={`text-xs mt-1 ${i === 6 ? 'text-[#1f3a28] font-bold' : 'text-[#1f3a28]'}`}>{16 + i}</span>
-                {i === 6 && <span className="text-[8px] text-[#d4907a] mt-1 font-bold uppercase tracking-widest">Today</span>}
+          <div className="grid grid-cols-7 gap-2 pt-2 border-t border-[#eedad2]/60">
+            {days.map((d) => (
+              <div
+                key={d.label}
+                className={`flex flex-col items-center justify-center rounded-2xl p-3 transition ${
+                  d.isToday
+                    ? "border-2 border-[#d4907a] bg-white shadow-xs"
+                    : "border border-[#eedad2]/50 bg-white/50 text-[#6b635e]"
+                }`}
+              >
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6b635e]">
+                  {d.label}
+                </span>
+                <span className={`font-serif text-base font-bold mt-1 ${d.isToday ? "text-[#1f3a28]" : "text-[#6b635e]"}`}>
+                  {d.dateNum}
+                </span>
+                {d.isToday && (
+                  <span className="text-[9px] font-semibold text-[#d4907a] uppercase mt-0.5">
+                    Today
+                  </span>
+                )}
               </div>
             ))}
           </div>
         </div>
 
-        {/* Today's Anchor */}
-        <div className="rounded-3xl border border-[#eedad2] bg-white/70 p-6 sm:p-8 shadow-2xs space-y-6">
+        {/* Sacred Anchor & Reflection */}
+        <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-8 shadow-2xs space-y-6">
           <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-4">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-[#d4907a] flex items-center space-x-2">
-              <BookOpen className="h-4 w-4" />
+            <div className="flex items-center space-x-2 text-[#d4907a] text-xs font-semibold uppercase tracking-wider">
+              <Sparkles className="h-4 w-4" />
               <span>Sacred Anchor & Reflection</span>
+            </div>
+            <span className="text-xs font-serif italic text-[#6b635e]">
+              Daily Meditation
             </span>
-            <span className="text-[10px] font-serif text-[#6b635e] italic">Daily Meditation</span>
           </div>
 
-          <div className="space-y-4 pt-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#6b635e]">Scripture Anchor</span>
-            <blockquote className="font-serif text-xl sm:text-2xl text-[#1f3a28] italic border-l-2 border-[#d4907a] pl-6 py-2 leading-relaxed">
-              &ldquo;Cast all your anxiety on him because he cares for you.&rdquo;
-            </blockquote>
-            <p className="text-xs text-[#6b635e] pl-6 font-medium">— 1 Peter 5:7</p>
-          </div>
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-[#eedad2] bg-white p-6 shadow-2xs space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#6b635e]">
+                Scripture Anchor
+              </span>
+              <blockquote className="font-serif text-base sm:text-lg text-[#1f3a28] italic leading-relaxed">
+                &ldquo;{todayAnchor?.verse}&rdquo;
+              </blockquote>
+              <p className="text-xs text-[#6b635e] font-serif font-semibold pt-1">— {todayAnchor?.reference}</p>
+            </div>
 
-          <div className="pt-6 border-t border-[#eedad2]/60 space-y-4">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#6b635e]">Guided Prayer</span>
-            <p className="font-serif text-sm text-[#1f3a28] leading-relaxed">
-              Lord, I release the burdens I was never meant to carry. My anxieties, my fears of the unknown, and the weight of today&rsquo;s demands—I hand them over to You. Fill the spaces of my worry with Your abiding peace. Amen.
-            </p>
+            <div className="space-y-2 pt-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#d4907a]">
+                Today&apos;s Reflection
+              </span>
+              <p className="font-serif text-sm sm:text-base text-[#1f3a28] leading-relaxed">
+                {todayAnchor?.reflection}
+              </p>
+            </div>
           </div>
         </div>
 
-      </main>
+        {/* Prayer Collections Section */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-serif text-2xl font-bold text-[#1f3a28]">
+                Prayer Collections ({categories.length})
+              </h2>
+              <p className="text-xs text-[#6b635e] mt-1">
+                Explore devotions curated for life&apos;s moments
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {categories.map((category, idx) => {
+              const situationCount = category.situations.length;
+              const prayerCount = category.prayers.length;
+              const collectionNum = String(idx + 1).padStart(2, "0");
+              const isDailyPrayers = category.name.toLowerCase().includes("daily prayer");
+
+              return (
+                <div
+                  key={category.id}
+                  className={`rounded-3xl p-8 transition space-y-6 flex flex-col justify-between shadow-2xs ${
+                    isDailyPrayers
+                      ? "border-2 border-[#d4907a] bg-white shadow-sm ring-4 ring-[#d4907a]/10"
+                      : "border border-[#eedad2] bg-[#faf3f0] hover:bg-white"
+                  }`}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isDailyPrayers ? "text-[#d4907a] font-extrabold" : "text-[#d4907a]"}`}>
+                        {isDailyPrayers ? "★ Featured Daily Routine" : `Collection ${collectionNum}`}
+                      </span>
+                      <span className="text-xs text-[#6b635e] font-medium">
+                        {situationCount} {situationCount === 1 ? "Situation" : "Situations"} • {prayerCount} {prayerCount === 1 ? "Prayer" : "Prayers"}
+                      </span>
+                    </div>
+                    <h3 className="font-serif text-xl font-bold text-[#1f3a28] flex items-center space-x-2">
+                      {isDailyPrayers && <Sun className="h-5 w-5 text-[#d4907a] inline mr-1" />}
+                      <span>{category.name}</span>
+                    </h3>
+                  </div>
+
+                  <div className="pt-2 border-t border-[#eedad2]/60 flex items-center justify-between">
+                    <Link
+                      href={`/categories/${category.slug}`}
+                      className={`inline-flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider transition group ${
+                        isDailyPrayers ? "text-[#d4907a] hover:text-[#1f3a28]" : "text-[#1f3a28] hover:text-[#d4907a]"
+                      }`}
+                    >
+                      <span>{isDailyPrayers ? "Begin Daily Prayer" : "Enter Space"}</span>
+                      <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                    {isDailyPrayers ? <Sun className="h-4 w-4 text-[#d4907a]" /> : <BookOpen className="h-4 w-4 text-[#6b635e]" />}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+      </div>
+
+      {/* Global Footer */}
+      <Footer />
     </div>
   );
 }
