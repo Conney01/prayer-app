@@ -3,6 +3,7 @@ import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { Flame, Sparkles, BookOpen, ArrowRight, Heart, Bookmark, Shield, LogOut } from "lucide-react";
 import { getUserStreak } from "~/lib/streak";
+import { completePrayerAction } from "~/app/actions/prayer-interactions";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +12,17 @@ export default async function DashboardPage() {
   const userId = session?.user?.id;
   const userRole = session?.user?.role;
 
-  const streak = userId ? await getUserStreak(userId) : { streakCount: 0 };
-  const streakCount = streak?.streakCount ?? 0;
+  // Automatically light up/increment streak on dashboard entry
+  if (userId) {
+    try {
+      await completePrayerAction();
+    } catch {
+      // Graceful fallback if streak update fails
+    }
+  }
+
+  const streak = userId ? await getUserStreak(userId) : { streakCount: 1 };
+  const streakCount = Math.max(1, streak?.streakCount ?? 1);
 
   const dailyReflections = [
     {
@@ -35,21 +45,24 @@ export default async function DashboardPage() {
   const todayIndex = new Date().getDate() % dailyReflections.length;
   const todayAnchor = dailyReflections[todayIndex] ?? dailyReflections[0];
 
-  // Correct 7-day week calculation starting from Saturday (Sat - Fri layout)
+  // Fetch a featured daily prayer for the long prayer card below
+  const featuredPrayer = await db.prayer.findFirst({
+    where: { isPublished: true },
+    include: { category: true, situation: true },
+    orderBy: { createdAt: "desc" },
+  });
+
+  // Calendar starting from Sunday to Saturday (SUN - SAT)
   const today = new Date();
-  const dayOfWeek = today.getDay(); // 0 = Sun, 6 = Sat, etc.
+  const dayOfWeek = today.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
   
-  // Calculate offset to the most recent Saturday
-  // If Saturday (6), offset is 0. If Sunday (0), offset is -1. If Friday (5), offset is -6.
-  const daysSinceSaturday = (dayOfWeek + 1) % 7;
-  
-  const saturdayDate = new Date(today);
-  saturdayDate.setDate(today.getDate() - daysSinceSaturday);
+  const sundayDate = new Date(today);
+  sundayDate.setDate(today.getDate() - dayOfWeek);
 
   const days = Array.from({ length: 7 }).map((_, index) => {
-    const d = new Date(saturdayDate);
-    d.setDate(saturdayDate.getDate() + index);
-    const labels = ["SAT", "SUN", "MON", "TUE", "WED", "THU", "FRI"];
+    const d = new Date(sundayDate);
+    d.setDate(sundayDate.getDate() + index);
+    const labels = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
     const isToday = d.toDateString() === today.toDateString();
 
     return {
@@ -127,7 +140,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* 7-Day Streak Calendar Bar */}
+        {/* 7-Day Streak Calendar Bar (Sun - Sat) */}
         <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-2xs space-y-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div className="flex items-center space-x-3">
@@ -139,7 +152,7 @@ export default async function DashboardPage() {
                   {streakCount} {streakCount === 1 ? "Day" : "Days"} in Stillness
                 </h3>
                 <p className="text-xs text-[#6b635e]">
-                  Personal best: {Math.max(3, streakCount)} days • Every breath in prayer counts.
+                  Active streak • Every breath in prayer counts.
                 </p>
               </div>
             </div>
@@ -208,6 +221,43 @@ export default async function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Long Daily Devotional Prayer Card */}
+        {featuredPrayer && (
+          <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-8 sm:p-10 shadow-2xs space-y-6">
+            <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-4">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">
+                Today&apos;s Featured Devotional Prayer
+              </span>
+              <span className="text-xs font-serif italic text-[#6b635e]">
+                {featuredPrayer.category?.name ?? "Daily Prayer"}
+              </span>
+            </div>
+
+            <div className="space-y-4">
+              <Link
+                href={`/prayers/${featuredPrayer.slug}`}
+                className="block group"
+              >
+                <h3 className="font-serif text-2xl sm:text-3xl font-bold text-[#1f3a28] group-hover:text-[#d4907a] transition">
+                  {featuredPrayer.title}
+                </h3>
+              </Link>
+              <p className="font-serif text-base sm:text-lg text-[#1f3a28] leading-[1.9] whitespace-pre-wrap">
+                {featuredPrayer.body}
+              </p>
+              <div className="pt-4 flex justify-end">
+                <Link
+                  href={`/prayers/${featuredPrayer.slug}`}
+                  className="inline-flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider text-[#2d5a3d] hover:text-[#1f3a28] transition group"
+                >
+                  <span>Read Full Prayer Experience</span>
+                  <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Prayer Collections Section */}
         <div className="space-y-6">
