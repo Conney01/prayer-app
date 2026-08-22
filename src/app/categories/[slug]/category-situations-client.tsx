@@ -7,7 +7,6 @@ import { BookOpen, ChevronDown } from "lucide-react";
 type Prayer = {
   id: string;
   title: string;
-  body: string;
   slug: string;
 };
 
@@ -64,21 +63,18 @@ export function CategorySituationsClient({ situations }: { situations: Situation
               )}
             </div>
 
-            {/* Collapsible Prayer List */}
+            {/* Collapsible Prayer List - Only showing titles */}
             {isOpen && prayerCount > 0 && (
               <div className="border-t border-[#eedad2]/60 pt-3 space-y-2">
                 {situation.prayers.map((prayer, idx) => (
                   <Link
                     key={prayer.id}
                     href={`/prayers/${prayer.slug}`}
-                    className="block rounded-xl border border-[#eedad2] bg-white p-3.5 text-xs text-[#1f3a28] hover:border-[#2d5a3d] transition shadow-2xs group"
+                    className="block rounded-lg border border-[#eedad2] bg-white p-3 text-xs text-[#1f3a28] hover:border-[#2d5a3d] transition shadow-2xs group flex items-center justify-between"
                   >
                     <span className="font-semibold font-serif text-[#1f3a28] group-hover:text-[#2d5a3d] transition">
                       Prayer {idx + 1}
                     </span>
-                    <p className="line-clamp-2 text-[#6b635e] text-[11px] mt-1 font-serif leading-relaxed">
-                      {prayer.body}
-                    </p>
                   </Link>
                 ))}
               </div>
