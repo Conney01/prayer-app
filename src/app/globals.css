@@ -1,45 +1,28 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
 
-:root {
-  --background: #fdf0ec;
-  --foreground: #1f3a28;
-  --primary: #2d5a3d;
-  --primary-foreground: #ffffff;
-  --secondary: #d4907a;
-  --secondary-foreground: #ffffff;
-  --muted-foreground: #6b635e;
-  --border: #eedad2;
-  --card: #faf3f0;
-  --card-foreground: #1f3a28;
-}
+@layer base {
+  :root {
+    --bg-cream: #f7f3ed;
+    --card-bg: #ffffff;
+    --forest-green: #1a3324;
+    --sage-green: #3d5a48;
+    --terracotta: #c47663;
+    --terracotta-hover: #b06552;
+    --soft-gold: #d4af37;
+    --border-warm: #ebdcd6;
+    --text-muted: #6b635e;
+  }
 
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-jost), sans-serif;
-}
-
-.font-serif {
-  font-family: var(--font-cormorant), Georgia, serif;
+  body {
+    background-color: var(--bg-cream);
+    color: var(--forest-green);
+    font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+  }
 }
 
-.font-sans {
-  font-family: var(--font-jost), sans-serif;
-}
-/* Hide Next.js Development Indicator */
-nextjs-portal,
-#__next-build-watcher,
-[data-nextjs-toast] {
-  display: none !important;
-}
-
-/* Suppress all Next.js dev indicators and overlays */
-nextjs-portal,
-#__next-build-watcher,
-[data-nextjs-toast],
-[data-nextjs-dialog-overlay],
-[data-nextjs-portal] {
-  display: none !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-}
+/* Custom utility overrides to match logo harmony */
+.bg-sanctuary-cream { background-color: #f7f3ed; }
+.bg-sanctuary-green { background-color: #1a3324; }
+.text-sanctuary-green { color: #1a3324; }
+.border-sanctuary { border-color: #ebdcd6; }
+.accent-sanctuary { color: #c47663; }
