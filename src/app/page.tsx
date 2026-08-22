@@ -1,87 +1,198 @@
+import Image from "next/image";
 import Link from "next/link";
-import { auth } from "~/server/auth";
+import { Sparkles, ArrowRight } from "lucide-react";
+import { FloatingParticles } from "~/components/floating-particles";
 
-export default async function HomePage() {
-  const session = await auth();
-
+export default function HomePage() {
   return (
-    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] flex flex-col justify-between selection:bg-[#eedad2]">
-      
-      {/* Top Header Navigation */}
-      <header className="w-full max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <span className="font-serif font-bold text-base tracking-wide text-[#1f3a28]">
-            • PRAYER SANCTUARY
-          </span>
-        </div>
-
-        <nav className="hidden md:flex items-center space-x-8 text-xs font-semibold uppercase tracking-widest text-[#6b635e]">
-          <Link href="#why" className="hover:text-[#1f3a28] transition">Why We Pray</Link>
-          <Link href="#practice" className="hover:text-[#1f3a28] transition">The Practice</Link>
-          <Link href="#about" className="hover:text-[#1f3a28] transition">About</Link>
-        </nav>
-
-        <div className="flex items-center space-x-4">
-          <Link
-            href={session ? "/dashboard" : "/login"}
-            className="text-xs font-semibold uppercase tracking-widest text-[#1f3a28] hover:text-[#d4907a] transition"
-          >
-            Sign In
+    <div className="relative min-h-screen bg-[#fdf0ec] text-[#1f3a28] overflow-x-hidden selection:bg-[#2d5a3d] selection:text-white">
+      {/* Refined Navigation Header */}
+      <header className="sticky top-0 z-40 border-b border-[#eedad2] bg-[#fdf0ec]/90 backdrop-blur-md">
+        <div className="mx-auto flex h-16 sm:h-20 max-w-6xl items-center justify-between px-4 sm:px-8">
+          <Link href="/" className="flex items-center space-x-2.5 sm:space-x-3 group">
+            <div className="relative h-7 w-7 sm:h-9 sm:w-9 flex-shrink-0 overflow-hidden rounded-md sm:rounded-lg border border-[#eedad2] bg-[#faf3f0] shadow-sm">
+              <Image
+                src="/logo.jpg"
+                alt="Sanctuary Emblem"
+                fill
+                sizes="36px"
+                className="object-cover"
+                priority
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#2d5a3d]" />
+              <span className="font-serif text-xs sm:text-sm font-semibold uppercase tracking-[0.25em] text-[#1f3a28]">
+                Prayer Sanctuary
+              </span>
+            </div>
           </Link>
-          <Link
-            href={session ? "/dashboard" : "/login"}
-            className="rounded-xl bg-[#2d5a3d] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#1f3a28] transition shadow-2xs"
-          >
-            Begin Praying
-          </Link>
+
+          {/* Desktop Nav Links */}
+          <nav className="hidden md:flex items-center space-x-8 text-xs uppercase tracking-[0.2em] font-medium text-[#6b635e]">
+            <a href="#why" className="hover:text-[#1f3a28] transition">Why We Pray</a>
+            <a href="#practice" className="hover:text-[#1f3a28] transition">The Practice</a>
+            <a href="#about" className="hover:text-[#1f3a28] transition">About</a>
+          </nav>
+
+          {/* Action CTAs */}
+          <div className="flex items-center space-x-3 sm:space-x-6">
+            <Link
+              href="/login"
+              className="text-xs uppercase tracking-[0.18em] font-medium text-[#6b635e] hover:text-[#1f3a28] transition px-1"
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/dashboard"
+              className="bg-[#2d5a3d] px-4 sm:px-6 py-2.5 sm:py-3 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.18em] text-white hover:bg-[#1f3a28] transition shadow-sm"
+            >
+              Begin Praying
+            </Link>
+          </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <main className="flex-1 flex flex-col items-center justify-center text-center px-6 py-16 max-w-4xl mx-auto space-y-8">
-        <div className="inline-flex items-center space-x-3 rounded-full border border-[#eedad2] bg-white/60 px-5 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-[#6b635e] shadow-2xs">
-          <span>Communion</span>
-          <span>•</span>
-          <span>Stillness</span>
-          <span>•</span>
-          <span>Renewal</span>
-        </div>
+      <main>
+        <section className="relative overflow-hidden pt-12 sm:pt-28 pb-16 sm:pb-32 px-4 sm:px-8">
+          <FloatingParticles />
+          <div className="relative z-20 mx-auto max-w-2xl text-center space-y-6 sm:space-y-8">
+            <div className="inline-flex items-center space-x-2 rounded-full border border-[#eedad2] bg-[#faf3f0] px-4 py-1.5 shadow-sm">
+              <Sparkles className="h-3.5 w-3.5 text-[#d4907a]" />
+              <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] font-medium text-[#6b635e]">
+                Communion &bull; Stillness &bull; Renewal
+              </span>
+            </div>
 
-        <h1 className="font-serif text-5xl sm:text-7xl font-bold text-[#1f3a28] tracking-tight leading-[1.1]">
-          Drawing near to God, <br />
-          <span className="italic font-normal">one day at a time.</span>
-        </h1>
+            <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl font-light italic tracking-tight text-[#1f3a28] leading-[1.12]">
+              Drawing near to God, <br />
+              <span className="font-normal not-italic text-[#2d5a3d]">one day at a time.</span>
+            </h1>
 
-        <p className="font-serif text-base sm:text-lg text-[#6b635e] max-w-2xl leading-relaxed">
-          Prayer is not a duty or performance—it is the breath of the soul. Discover quiet spaces to anchor your heart, release anxiety, and walk closely with your Creator every single day.
-        </p>
+            <p className="mx-auto max-w-lg text-sm sm:text-base text-[#6b635e] font-sans font-light leading-relaxed px-2">
+              Prayer is not a duty or a performance—it is the breath of the soul. Discover quiet words to anchor your heart, release anxiety, and walk closely with your Creator every single day.
+            </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-          <Link
-            href={session ? "/dashboard" : "/login"}
-            className="w-full sm:w-auto rounded-2xl bg-[#2d5a3d] px-8 py-4 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#1f3a28] transition shadow-xs text-center"
-          >
-            Begin Praying →
-          </Link>
-          <Link
-            href="/support"
-            className="w-full sm:w-auto rounded-2xl border border-[#eedad2] bg-white px-8 py-4 text-xs font-bold uppercase tracking-wider text-[#1f3a28] hover:bg-[#faf3f0] transition shadow-xs text-center"
-          >
-            Support App
-          </Link>
-        </div>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-4 max-w-md mx-auto">
+              <Link
+                href="/dashboard"
+                className="w-full sm:w-auto flex-1 bg-[#2d5a3d] px-8 py-4 text-xs font-semibold uppercase tracking-[0.22em] text-white hover:bg-[#1f3a28] transition flex items-center justify-center space-x-2 shadow-sm"
+              >
+                <span>Begin Praying</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/login"
+                className="w-full sm:w-auto flex-1 border border-[#eedad2] bg-[#faf3f0] px-8 py-4 text-xs font-medium uppercase tracking-[0.22em] text-[#1f3a28] hover:border-[#2d5a3d] hover:bg-white transition flex items-center justify-center"
+              >
+                <span>Enter Sanctuary &rarr;</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Section: Why We Pray */}
+        <section id="why" className="border-t border-[#eedad2] bg-[#faf3f0] py-16 sm:py-24 px-4 sm:px-8">
+          <div className="mx-auto max-w-4xl space-y-8">
+            <div className="text-center max-w-xl mx-auto space-y-2">
+              <p className="text-[10px] uppercase tracking-[0.3em] font-medium text-[#d4907a]">Why We Pray</p>
+              <h2 className="font-serif text-2xl sm:text-4xl text-[#1f3a28] font-light italic">
+                Returning to Sacred Stillness
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-xs sm:text-sm text-[#6b635e] leading-relaxed pt-4">
+              <p>
+                In a world characterized by hurried pace, endless noise, and mounting anxiety, prayer is our daily anchor. It is the sacred pause where we lay down our striving, hand over our burdens, and remember who holds our lives.
+              </p>
+              <p>
+                Sanctuary was built to provide quiet words when your own feel elusive. Whether facing uncertainty at dawn, pressure in midday work, or exhaustion at midnight, prayer opens the door to God&apos;s peace.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Section: The Practice */}
+        <section id="practice" className="border-t border-[#eedad2] py-16 sm:py-24 px-4 sm:px-8 bg-[#fdf0ec]">
+          <div className="mx-auto max-w-5xl space-y-12">
+            <div className="text-center max-w-xl mx-auto space-y-2">
+              <p className="text-[10px] uppercase tracking-[0.3em] font-medium text-[#d4907a]">The Practice</p>
+              <h2 className="font-serif text-2xl sm:text-4xl text-[#1f3a28] font-light italic">
+                A Rhythm for Everyday Life
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="border border-[#eedad2] bg-[#faf3f0] p-8 space-y-3">
+                <span className="font-serif text-sm text-[#d4907a]">01 &bull; Morning Light</span>
+                <h3 className="font-serif text-lg text-[#1f3a28]">Consecrate the Day</h3>
+                <p className="text-xs text-[#6b635e] leading-relaxed">
+                  Start before the noise begins. Offer your gratitude, surrender your plans, and invite God&apos;s wisdom into your morning.
+                </p>
+              </div>
+
+              <div className="border border-[#eedad2] bg-[#faf3f0] p-8 space-y-3">
+                <span className="font-serif text-sm text-[#d4907a]">02 &bull; Midday Stillness</span>
+                <h3 className="font-serif text-lg text-[#1f3a28]">Breathe and Anchor</h3>
+                <p className="text-xs text-[#6b635e] leading-relaxed">
+                  Pause amidst work, decisions, and challenges. Realign your spirit and find immediate peace through tailored situational prayers.
+                </p>
+              </div>
+
+              <div className="border border-[#eedad2] bg-[#faf3f0] p-8 space-y-3">
+                <span className="font-serif text-sm text-[#d4907a]">03 &bull; Evening Examen</span>
+                <h3 className="font-serif text-lg text-[#1f3a28]">Release and Rest</h3>
+                <p className="text-xs text-[#6b635e] leading-relaxed">
+                  Reflect on God&apos;s faithfulness through the day. Lay aside lingering anxieties and enter peaceful, guarded sleep.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section: About */}
+        <section id="about" className="border-t border-[#eedad2] bg-[#faf3f0] py-16 sm:py-24 px-4 sm:px-8">
+          <div className="mx-auto max-w-3xl text-center space-y-6">
+            <p className="text-[10px] uppercase tracking-[0.3em] font-medium text-[#d4907a]">About Sanctuary</p>
+            <h2 className="font-serif text-2xl sm:text-4xl text-[#1f3a28] font-light italic">
+              Crafted with Care and Devotion
+            </h2>
+            <p className="text-xs sm:text-sm text-[#6b635e] leading-relaxed max-w-xl mx-auto">
+              Sanctuary is a thoughtfully curated digital prayer companion designed to nurture personal communion with God. Featuring Scripture anchors, deep situational prayers, and daily rhythms, it is freely accessible to anyone seeking stillness.
+            </p>
+            <div className="pt-4">
+              <Link
+                href="/dashboard"
+                className="inline-block bg-[#2d5a3d] px-8 py-3.5 text-xs font-semibold uppercase tracking-[0.2em] text-white hover:bg-[#1f3a28] transition"
+              >
+                Begin Your Walk
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Quiet Footer */}
+        <footer className="border-t border-[#eedad2] bg-[#fdf0ec] py-10 px-4 text-center text-xs text-[#6b635e]">
+          <div className="mx-auto max-w-4xl space-y-4">
+            <div className="flex items-center justify-center space-x-2.5">
+              <div className="relative h-6 w-6 overflow-hidden rounded-md border border-[#eedad2]">
+                <Image src="/logo.jpg" alt="Icon" fill sizes="24px" className="object-cover" />
+              </div>
+              <span className="font-serif text-xs font-semibold uppercase tracking-[0.25em] text-[#1f3a28]">
+                Sanctuary
+              </span>
+            </div>
+            <p className="text-[11px] text-[#6b635e]">
+              A quiet space for contemplation, daily Scripture, and Christian prayer.
+            </p>
+            <div className="flex justify-center space-x-6 text-[10px] uppercase tracking-wider text-[#6b635e]">
+              <Link href="/privacy" className="hover:text-[#1f3a28]">Privacy Policy</Link>
+              <span>&bull;</span>
+              <Link href="/terms" className="hover:text-[#1f3a28]">Terms of Service</Link>
+            </div>
+          </div>
+        </footer>
       </main>
-
-      {/* Footer */}
-      <footer className="w-full max-w-6xl mx-auto px-6 py-8 border-t border-[#eedad2]/60 flex flex-col sm:flex-row items-center justify-between text-xs text-[#6b635e] font-serif gap-4">
-        <p>© 2026 Sanctuary. Quiet daily Christian devotionals.</p>
-        <div className="flex items-center space-x-6 text-[11px] uppercase tracking-wider font-sans">
-          <Link href="/privacy" className="hover:text-[#1f3a28] transition">Email</Link>
-          <Link href="/support" className="hover:text-[#1f3a28] transition">WhatsApp</Link>
-          <Link href="/terms" className="hover:text-[#1f3a28] transition">Socials</Link>
-        </div>
-      </footer>
-
     </div>
   );
 }
