@@ -26,8 +26,8 @@ export function LoginForm() {
       return;
     }
     setError("");
-    // Directly redirect to NextAuth Google provider endpoint
-    window.location.href = "/api/auth/signin/google";
+    // Route directly to NextAuth Google provider signin with callbackUrl
+    window.location.href = "/api/auth/signin/google?callbackUrl=" + encodeURIComponent("/dashboard");
   };
 
   return (
