@@ -1,5 +1,5 @@
 import { db } from "~/server/db";
-import { PrayerForm } from "../prayer-form";
+import { PrayerForm } from "../../prayer-form";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
