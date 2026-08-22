@@ -40,8 +40,8 @@ export function PrayerForm({
     .map((p) => p.title.split(/ [-—] /)[0]?.trim())
     .filter(Boolean) as string[];
 
-  // Pure exact match from master map + any newly added custom situations from DB
-  const allSituations = Array.from(new Set([...defaultList, ...existingDbSituations])).sort();
+  // Preserve exact dashboard order, appending any extra custom situations created in DB
+  const allSituations = Array.from(new Set([...defaultList, ...existingDbSituations]));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,9 +169,13 @@ export function PrayerForm({
                 : "Select a category first..."}
             </option>
             {allSituations.map((sit) => {
-              const count = prayers.filter(
-                (p) => p.categoryId === categoryId && p.title.startsWith(sit)
-              ).length;
+              // Exact base title matching
+              const count = prayers.filter((p) => {
+                if (p.categoryId !== categoryId) return false;
+                const base = p.title.split(/ [-—] /)[0]?.trim();
+                return base === sit;
+              }).length;
+
               return (
                 <option key={sit} value={sit}>
                   {sit} ({count} {count === 1 ? "prayer" : "prayers"})
