@@ -12,12 +12,11 @@ export default async function DashboardPage() {
   const userId = session?.user?.id;
   const userRole = session?.user?.role;
 
-  // Automatically light up/increment streak on dashboard entry
   if (userId) {
     try {
       await completePrayerAction();
     } catch {
-      // Graceful fallback if streak update fails
+      // Graceful fallback
     }
   }
 
@@ -45,14 +44,12 @@ export default async function DashboardPage() {
   const todayIndex = new Date().getDate() % dailyReflections.length;
   const todayAnchor = dailyReflections[todayIndex] ?? dailyReflections[0];
 
-  // Fetch a featured daily prayer for the long prayer card below
   const featuredPrayer = await db.prayer.findFirst({
     where: { isPublished: true },
     include: { category: true, situation: true },
     orderBy: { createdAt: "desc" },
   });
 
-  // Calendar starting from Sunday to Saturday (SUN - SAT)
   const today = new Date();
   const dayOfWeek = today.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
   
@@ -188,7 +185,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Sacred Anchor: Automated Scripture & Reflection */}
+        {/* Sacred Anchor & Reflection */}
         <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-8 shadow-2xs space-y-6">
           <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-4">
             <div className="flex items-center space-x-2 text-[#d4907a] text-xs font-semibold uppercase tracking-wider">
@@ -222,39 +219,41 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Long Daily Devotional Prayer Card */}
+        {/* Specially Styled Featured Devotional Prayer Card */}
         {featuredPrayer && (
-          <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-8 sm:p-10 shadow-2xs space-y-6">
-            <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-4">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">
-                Today&apos;s Featured Devotional Prayer
-              </span>
-              <span className="text-xs font-serif italic text-[#6b635e]">
-                {featuredPrayer.category?.name ?? "Daily Prayer"}
+          <div className="rounded-3xl border-2 border-[#d4907a]/40 bg-white p-8 sm:p-12 shadow-sm space-y-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-[#fdf0ec] px-4 py-1.5 rounded-bl-2xl border-l border-b border-[#eedad2]">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#d4907a]">
+                Featured Daily Prayer
               </span>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 pt-2">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-[#6b635e]">
+                {featuredPrayer.category?.name ?? "Sanctuary Devotion"}
+              </span>
               <Link
                 href={`/prayers/${featuredPrayer.slug}`}
                 className="block group"
               >
-                <h3 className="font-serif text-2xl sm:text-3xl font-bold text-[#1f3a28] group-hover:text-[#d4907a] transition">
+                <h3 className="font-serif text-2xl sm:text-4xl font-bold text-[#1f3a28] group-hover:text-[#d4907a] transition">
                   {featuredPrayer.title}
                 </h3>
               </Link>
-              <p className="font-serif text-base sm:text-lg text-[#1f3a28] leading-[1.9] whitespace-pre-wrap">
-                {featuredPrayer.body}
-              </p>
-              <div className="pt-4 flex justify-end">
-                <Link
-                  href={`/prayers/${featuredPrayer.slug}`}
-                  className="inline-flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider text-[#2d5a3d] hover:text-[#1f3a28] transition group"
-                >
-                  <span>Read Full Prayer Experience</span>
-                  <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </div>
+            </div>
+
+            <div className="font-serif text-base sm:text-lg text-[#1f3a28] leading-[2] max-w-2xl mx-auto text-center whitespace-pre-wrap py-4 border-t border-b border-[#eedad2]/50">
+              {featuredPrayer.body}
+            </div>
+
+            <div className="flex justify-center pt-2">
+              <Link
+                href={`/prayers/${featuredPrayer.slug}`}
+                className="inline-flex items-center space-x-2 rounded-xl border border-[#2d5a3d] bg-[#2d5a3d] text-white px-6 py-3 text-xs font-semibold uppercase tracking-wider hover:bg-[#1f3a28] transition shadow-xs"
+              >
+                <span>Open Full Prayer Sanctuary</span>
+                <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
           </div>
         )}
