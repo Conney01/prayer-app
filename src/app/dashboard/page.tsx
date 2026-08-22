@@ -4,6 +4,7 @@ import { db } from "~/server/db";
 import { Flame, Sparkles, BookOpen, ArrowRight, Heart, Bookmark, Shield, LogOut, Sun } from "lucide-react";
 import { getUserStreak } from "~/lib/streak";
 import { completePrayerAction } from "~/app/actions/prayer-interactions";
+import { Footer } from "~/components/footer";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +46,7 @@ export default async function DashboardPage() {
   const todayAnchor = dailyReflections[todayIndex] ?? dailyReflections[0];
 
   const today = new Date();
-  const dayOfWeek = today.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+  const dayOfWeek = today.getDay();
   
   const sundayDate = new Date(today);
   sundayDate.setDate(today.getDate() - dayOfWeek);
@@ -80,8 +81,8 @@ export default async function DashboardPage() {
   });
 
   return (
-    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] py-8 px-4 sm:px-8">
-      <div className="mx-auto max-w-5xl space-y-10">
+    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] flex flex-col justify-between">
+      <div className="py-8 px-4 sm:px-8 max-w-5xl mx-auto w-full space-y-10">
         
         {/* Top Header & Action Buttons */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-[#eedad2] pb-6 gap-4">
@@ -276,6 +277,9 @@ export default async function DashboardPage() {
         </div>
 
       </div>
+
+      {/* Global Footer */}
+      <Footer />
     </div>
   );
 }
