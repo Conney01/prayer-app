@@ -27,8 +27,7 @@ export function LoginForm() {
       return;
     }
     setError("");
-    // Standard NextAuth signin call handles the OAuth redirect securely
-    signIn("google", { callbackUrl: "/dashboard" });
+    void signIn("google", { callbackUrl: "/dashboard" });
   };
 
   return (

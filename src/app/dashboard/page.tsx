@@ -10,8 +10,8 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Get the first name or fallback gracefully to Aron
-  const firstName = session.user.name?.split(" ")[0] || "Aron";
+  // Get the first name or fallback gracefully to Aron using nullish coalescing
+  const firstName = session.user.name?.split(" ")[0] ?? "Aron";
 
   return (
     <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] selection:bg-[#eedad2]">
@@ -99,7 +99,7 @@ export default async function DashboardPage() {
           <div className="space-y-4 pt-2">
             <span className="text-[10px] font-bold uppercase tracking-widest text-[#6b635e]">Scripture Anchor</span>
             <blockquote className="font-serif text-xl sm:text-2xl text-[#1f3a28] italic border-l-2 border-[#d4907a] pl-6 py-2 leading-relaxed">
-              "Cast all your anxiety on him because he cares for you."
+              &ldquo;Cast all your anxiety on him because he cares for you.&rdquo;
             </blockquote>
             <p className="text-xs text-[#6b635e] pl-6 font-medium">— 1 Peter 5:7</p>
           </div>
@@ -107,7 +107,7 @@ export default async function DashboardPage() {
           <div className="pt-6 border-t border-[#eedad2]/60 space-y-4">
             <span className="text-[10px] font-bold uppercase tracking-widest text-[#6b635e]">Guided Prayer</span>
             <p className="font-serif text-sm text-[#1f3a28] leading-relaxed">
-              Lord, I release the burdens I was never meant to carry. My anxieties, my fears of the unknown, and the weight of today’s demands—I hand them over to You. Fill the spaces of my worry with Your abiding peace. Amen.
+              Lord, I release the burdens I was never meant to carry. My anxieties, my fears of the unknown, and the weight of today&rsquo;s demands—I hand them over to You. Fill the spaces of my worry with Your abiding peace. Amen.
             </p>
           </div>
         </div>
