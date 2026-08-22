@@ -35,18 +35,29 @@ export default async function DashboardPage() {
   const todayIndex = new Date().getDate() % dailyReflections.length;
   const todayAnchor = dailyReflections[todayIndex] ?? dailyReflections[0];
 
+  // Correct 7-day week calculation starting from Saturday (Sat - Fri layout)
   const today = new Date();
-  const currentDayOfWeek = today.getDay();
+  const dayOfWeek = today.getDay(); // 0 = Sun, 6 = Sat, etc.
   
-  const days = [
-    { label: "SAT", offset: -6 + ((currentDayOfWeek + 1) % 7) },
-    { label: "SUN", offset: -5 + ((currentDayOfWeek + 1) % 7) },
-    { label: "MON", offset: -4 + ((currentDayOfWeek + 1) % 7) },
-    { label: "TUE", offset: -3 + ((currentDayOfWeek + 1) % 7) },
-    { label: "WED", offset: -2 + ((currentDayOfWeek + 1) % 7) },
-    { label: "THU", offset: -1 + ((currentDayOfWeek + 1) % 7) },
-    { label: "FRI", offset: 0 },
-  ];
+  // Calculate offset to the most recent Saturday
+  // If Saturday (6), offset is 0. If Sunday (0), offset is -1. If Friday (5), offset is -6.
+  const daysSinceSaturday = (dayOfWeek + 1) % 7;
+  
+  const saturdayDate = new Date(today);
+  saturdayDate.setDate(today.getDate() - daysSinceSaturday);
+
+  const days = Array.from({ length: 7 }).map((_, index) => {
+    const d = new Date(saturdayDate);
+    d.setDate(saturdayDate.getDate() + index);
+    const labels = ["SAT", "SUN", "MON", "TUE", "WED", "THU", "FRI"];
+    const isToday = d.toDateString() === today.toDateString();
+
+    return {
+      label: labels[index],
+      dateNum: d.getDate(),
+      isToday,
+    };
+  });
 
   const categories = await db.category.findMany({
     include: {
@@ -139,35 +150,28 @@ export default async function DashboardPage() {
           </div>
 
           <div className="grid grid-cols-7 gap-2 pt-2 border-t border-[#eedad2]/60">
-            {days.map((d, index) => {
-              const targetDate = new Date();
-              targetDate.setDate(today.getDate() + d.offset);
-              const dayNum = targetDate.getDate();
-              const isToday = index === 6;
-
-              return (
-                <div
-                  key={d.label}
-                  className={`flex flex-col items-center justify-center rounded-2xl p-3 transition ${
-                    isToday
-                      ? "border-2 border-[#d4907a] bg-white shadow-xs"
-                      : "border border-[#eedad2]/50 bg-white/50 text-[#6b635e]"
-                  }`}
-                >
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#6b635e]">
-                    {d.label}
+            {days.map((d) => (
+              <div
+                key={d.label}
+                className={`flex flex-col items-center justify-center rounded-2xl p-3 transition ${
+                  d.isToday
+                    ? "border-2 border-[#d4907a] bg-white shadow-xs"
+                    : "border border-[#eedad2]/50 bg-white/50 text-[#6b635e]"
+                }`}
+              >
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6b635e]">
+                  {d.label}
+                </span>
+                <span className={`font-serif text-base font-bold mt-1 ${d.isToday ? "text-[#1f3a28]" : "text-[#6b635e]"}`}>
+                  {d.dateNum}
+                </span>
+                {d.isToday && (
+                  <span className="text-[9px] font-semibold text-[#d4907a] uppercase mt-0.5">
+                    Today
                   </span>
-                  <span className={`font-serif text-base font-bold mt-1 ${isToday ? "text-[#1f3a28]" : "text-[#6b635e]"}`}>
-                    {dayNum}
-                  </span>
-                  {isToday && (
-                    <span className="text-[9px] font-semibold text-[#d4907a] uppercase mt-0.5">
-                      Today
-                    </span>
-                  )}
-                </div>
-              );
-            })}
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
