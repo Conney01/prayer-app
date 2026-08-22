@@ -17,13 +17,35 @@ export function LoginForm() {
       return;
     }
     setError("");
-    await signIn("credentials", { email, password, callbackUrl: "/dashboard" });
+    try {
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+      if (res?.error) {
+        setError("Invalid email or password.");
+      } else {
+        window.location.href = "/dashboard";
+      }
+    } catch {
+      setError("An unexpected error occurred during sign in.");
+    }
   };
 
-  const handleGoogleSubmit = (e: React.FormEvent) => {
+  const handleGoogleSignIn = async () => {
     if (!acceptedTerms) {
-      e.preventDefault();
       setError("Please read and accept the Terms & Conditions to continue with Google.");
+      return;
+    }
+    setError("");
+    try {
+      // Explicitly trigger NextAuth Google provider with error catching
+      const result = await signIn("google", { callbackUrl: "/dashboard" });
+      console.log("Google Sign-In Triggered:", result);
+    } catch (err) {
+      console.error("Google Sign-In Error:", err);
+      setError("Unable to initiate Google sign-in. Check console for details.");
     }
   };
 
@@ -35,16 +57,14 @@ export function LoginForm() {
         </div>
       )}
 
-      {/* Official NextAuth Google OAuth POST Form */}
-      <form action="/api/auth/signin/google" method="POST" onSubmit={handleGoogleSubmit}>
-        <input type="hidden" name="callbackUrl" value="/dashboard" />
-        <button
-          type="submit"
-          className="w-full rounded-xl border border-[#eedad2] bg-white py-3 text-xs font-bold uppercase tracking-wider text-[#1f3a28] hover:bg-[#faf3f0] transition shadow-2xs cursor-pointer"
-        >
-          Continue with Google
-        </button>
-      </form>
+      {/* Google Sign-In Button */}
+      <button
+        type="button"
+        onClick={handleGoogleSignIn}
+        className="w-full rounded-xl border border-[#eedad2] bg-white py-3 text-xs font-bold uppercase tracking-wider text-[#1f3a28] hover:bg-[#faf3f0] transition shadow-2xs cursor-pointer"
+      >
+        Continue with Google
+      </button>
 
       <div className="text-center text-[10px] text-[#6b635e] uppercase tracking-widest">Or with email</div>
 
