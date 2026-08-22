@@ -20,14 +20,14 @@ export function LoginForm() {
     await signIn("credentials", { email, password, callbackUrl: "/dashboard" });
   };
 
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = async () => {
     if (!acceptedTerms) {
       setError("Please read and accept the Terms & Conditions to continue with Google.");
       return;
     }
     setError("");
-    // Route directly to NextAuth Google provider signin with callbackUrl
-    window.location.href = "/api/auth/signin/google?callbackUrl=" + encodeURIComponent("/dashboard");
+    // Use NextAuth's official client-side helper to avoid browser security blocks
+    await signIn("google", { callbackUrl: "/dashboard" });
   };
 
   return (
