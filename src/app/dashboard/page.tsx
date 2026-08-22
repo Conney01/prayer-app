@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { Flame, Sparkles, BookOpen, ArrowRight, Heart, Bookmark, Shield, LogOut } from "lucide-react";
+import { Flame, Sparkles, BookOpen, ArrowRight, Heart, Bookmark, Shield, LogOut, Sun } from "lucide-react";
 import { getUserStreak } from "~/lib/streak";
 import { completePrayerAction } from "~/app/actions/prayer-interactions";
 
@@ -43,12 +43,6 @@ export default async function DashboardPage() {
 
   const todayIndex = new Date().getDate() % dailyReflections.length;
   const todayAnchor = dailyReflections[todayIndex] ?? dailyReflections[0];
-
-  const featuredPrayer = await db.prayer.findFirst({
-    where: { isPublished: true },
-    include: { category: true, situation: true },
-    orderBy: { createdAt: "desc" },
-  });
 
   const today = new Date();
   const dayOfWeek = today.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
@@ -219,45 +213,6 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Specially Styled Featured Devotional Prayer Card */}
-        {featuredPrayer && (
-          <div className="rounded-3xl border-2 border-[#d4907a]/40 bg-white p-8 sm:p-12 shadow-sm space-y-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 bg-[#fdf0ec] px-4 py-1.5 rounded-bl-2xl border-l border-b border-[#eedad2]">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[#d4907a]">
-                Featured Daily Prayer
-              </span>
-            </div>
-
-            <div className="space-y-3 pt-2">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-[#6b635e]">
-                {featuredPrayer.category?.name ?? "Sanctuary Devotion"}
-              </span>
-              <Link
-                href={`/prayers/${featuredPrayer.slug}`}
-                className="block group"
-              >
-                <h3 className="font-serif text-2xl sm:text-4xl font-bold text-[#1f3a28] group-hover:text-[#d4907a] transition">
-                  {featuredPrayer.title}
-                </h3>
-              </Link>
-            </div>
-
-            <div className="font-serif text-base sm:text-lg text-[#1f3a28] leading-[2] max-w-2xl mx-auto text-center whitespace-pre-wrap py-4 border-t border-b border-[#eedad2]/50">
-              {featuredPrayer.body}
-            </div>
-
-            <div className="flex justify-center pt-2">
-              <Link
-                href={`/prayers/${featuredPrayer.slug}`}
-                className="inline-flex items-center space-x-2 rounded-xl border border-[#2d5a3d] bg-[#2d5a3d] text-white px-6 py-3 text-xs font-semibold uppercase tracking-wider hover:bg-[#1f3a28] transition shadow-xs"
-              >
-                <span>Open Full Prayer Sanctuary</span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-        )}
-
         {/* Prayer Collections Section */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
@@ -276,35 +231,43 @@ export default async function DashboardPage() {
               const situationCount = category.situations.length;
               const prayerCount = category.prayers.length;
               const collectionNum = String(idx + 1).padStart(2, "0");
+              const isDailyPrayers = category.name.toLowerCase().includes("daily prayer");
 
               return (
                 <div
                   key={category.id}
-                  className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-8 shadow-2xs hover:bg-white transition space-y-6 flex flex-col justify-between"
+                  className={`rounded-3xl p-8 transition space-y-6 flex flex-col justify-between shadow-2xs ${
+                    isDailyPrayers
+                      ? "border-2 border-[#d4907a] bg-white shadow-sm ring-4 ring-[#d4907a]/10"
+                      : "border border-[#eedad2] bg-[#faf3f0] hover:bg-white"
+                  }`}
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">
-                        Collection {collectionNum}
+                      <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isDailyPrayers ? "text-[#d4907a] font-extrabold" : "text-[#d4907a]"}`}>
+                        {isDailyPrayers ? "★ Featured Daily Routine" : `Collection ${collectionNum}`}
                       </span>
                       <span className="text-xs text-[#6b635e] font-medium">
                         {situationCount} {situationCount === 1 ? "Situation" : "Situations"} • {prayerCount} {prayerCount === 1 ? "Prayer" : "Prayers"}
                       </span>
                     </div>
-                    <h3 className="font-serif text-xl font-bold text-[#1f3a28]">
-                      {category.name}
+                    <h3 className="font-serif text-xl font-bold text-[#1f3a28] flex items-center space-x-2">
+                      {isDailyPrayers && <Sun className="h-5 w-5 text-[#d4907a] inline mr-1" />}
+                      <span>{category.name}</span>
                     </h3>
                   </div>
 
                   <div className="pt-2 border-t border-[#eedad2]/60 flex items-center justify-between">
                     <Link
                       href={`/categories/${category.slug}`}
-                      className="inline-flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider text-[#1f3a28] hover:text-[#d4907a] transition group"
+                      className={`inline-flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider transition group ${
+                        isDailyPrayers ? "text-[#d4907a] hover:text-[#1f3a28]" : "text-[#1f3a28] hover:text-[#d4907a]"
+                      }`}
                     >
-                      <span>Enter Space</span>
+                      <span>{isDailyPrayers ? "Begin Daily Prayer" : "Enter Space"}</span>
                       <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
                     </Link>
-                    <BookOpen className="h-4 w-4 text-[#6b635e]" />
+                    {isDailyPrayers ? <Sun className="h-4 w-4 text-[#d4907a]" /> : <BookOpen className="h-4 w-4 text-[#6b635e]" />}
                   </div>
                 </div>
               );
