@@ -6,7 +6,7 @@ import { savePrayerAction } from "~/app/actions/prayer";
 import { getSituationsForCategory } from "~/lib/situations";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 
-type Category = { id: string; name: string; slug: string };
+type Category = { id: string; name: string; slug?: string };
 type Prayer = { id: string; title: string; categoryId: string; body: string };
 
 export function PrayerForm({
@@ -33,7 +33,7 @@ export function PrayerForm({
   const [error, setError] = useState("");
 
   const selectedCategory = categories.find((c) => c.id === categoryId);
-  const defaultList = selectedCategory ? getSituationsForCategory(selectedCategory.slug) : [];
+  const defaultList = selectedCategory ? getSituationsForCategory(selectedCategory) : [];
 
   const existingDbSituations = prayers
     .filter((p) => p.categoryId === categoryId)
@@ -162,7 +162,11 @@ export function PrayerForm({
             disabled={!categoryId && !isAddingCategory}
             className="w-full rounded-xl border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none disabled:opacity-50"
           >
-            <option value="">Select a situation ({allSituations.length} available)...</option>
+            <option value="">
+              {categoryId
+                ? `Select a situation (${allSituations.length} available)...`
+                : "Select a category first..."}
+            </option>
             {allSituations.map((sit) => {
               const count = prayers.filter(
                 (p) => p.categoryId === categoryId && p.title.startsWith(sit)

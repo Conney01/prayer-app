@@ -1,6 +1,5 @@
-export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
-  // Forgiveness & Repentance
-  "forgiveness-repentance": [
+export const MASTER_SITUATIONS_MAP: Record<string, string[]> = {
+  forgiveness: [
     "Prayer for Forgiveness of Sins",
     "Prayer After Hurting Someone",
     "Prayer Before Asking Someone for Forgiveness",
@@ -23,32 +22,7 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer to Break Chains of Bitterness",
     "Prayer for Healing Broken Family Ties",
   ],
-  "forgiveness-repentance-reconciliation": [
-    "Prayer for Forgiveness of Sins",
-    "Prayer After Hurting Someone",
-    "Prayer Before Asking Someone for Forgiveness",
-    "Prayer for Forgiveness",
-    "Prayer for Forgiving Yourself",
-    "Prayer for Freedom from Bitterness",
-    "Prayer for God's Mercy",
-    "Prayer for Healing a Broken Relationship",
-    "Prayer for Peace After Conflict",
-    "Prayer for Reconciliation in a Relationship",
-    "Prayer for Restoring Trust",
-    "Prayer for Restoring a Friendship",
-    "Prayer for a Fresh Start",
-    "Prayer for a Repentant Heart",
-    "Prayer for the Grace to Forgive Others",
-    "Prayer of Repentance",
-    "Prayer to Let Go of Resentment",
-    "Prayer When Someone Has Hurt You",
-    "Prayer for Humility to Seek Forgiveness",
-    "Prayer to Break Chains of Bitterness",
-    "Prayer for Healing Broken Family Ties",
-  ],
-
-  // School, Studies & Exams
-  "school-studies-exams": [
+  school: [
     "Prayer for Exam Peace and Focus",
     "Prayer for Clarity During Lectures",
     "Prayer for Memory and Retention",
@@ -68,9 +42,7 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer for Thesis & Research Clarity",
     "Prayer for Academic Excellence",
   ],
-
-  // Work, Career & Business
-  "work-career-business": [
+  work: [
     "Prayer for Job Interview Confidence",
     "Prayer for Promotion and Favor at Work",
     "Prayer for Business Breakthrough",
@@ -90,9 +62,7 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer for Starting a New Business Venture",
     "Prayer for Stress Relief During Work Deadlines",
   ],
-
-  // Financial Difficulties
-  "financial-difficulties": [
+  finance: [
     "Prayer for Freedom from Debt",
     "Prayer for Provision in Times of Lack",
     "Prayer for Wisdom in Financial Management",
@@ -109,10 +79,10 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer for Protection Over Assets and Income",
     "Prayer for Integrity in Financial Dealings",
     "Prayer for Tithing and Cheerful Giving",
+    "Prayer for Emergency Financial Relief",
+    "Prayer When Facing Loss of Income",
   ],
-
-  // Family
-  "family": [
+  family: [
     "Prayer for Protection Over Children",
     "Prayer for Marital Harmony and Love",
     "Prayer for Wayward Teenagers or Children",
@@ -130,9 +100,7 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer for Blessing Over the Family Home",
     "Prayer for In-Law Relationships",
   ],
-
-  // Love & Relationships
-  "love-relationships": [
+  love: [
     "Prayer for Finding a Godly Partner",
     "Prayer for Courtship and Dating Wisdom",
     "Prayer for Healing After a Breakup",
@@ -150,9 +118,7 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer for Honoring God Through Singleness",
     "Prayer for Healing Heartbreak and Betrayal",
   ],
-
-  // Health & Healing
-  "health-healing": [
+  health: [
     "Prayer for Physical Healing from Disease",
     "Prayer for Mental Health and Inner Calm",
     "Prayer for Recovery After Surgery",
@@ -170,9 +136,7 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer for Spiritual Healing of the Soul",
     "Prayer for Immune System Strengthening",
   ],
-
-  // Protection & Safety
-  "protection-safety": [
+  protection: [
     "Prayer for Safe Travel on Journeys",
     "Prayer for Spiritual Warfare and Deliverance",
     "Prayer for Home and Family Protection",
@@ -189,9 +153,7 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer for Divine Guidance in Dangerous Times",
     "Prayer for Protection at Work and School",
   ],
-
-  // Guidance & Important Decisions
-  "guidance-decisions": [
+  guidance: [
     "Prayer for Knowing God's Will",
     "Prayer for Making Big Life Choices",
     "Prayer for Discernment Between Good and Evil",
@@ -208,26 +170,7 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer for Wisdom When Overwhelmed by Choices",
     "Prayer for Spiritual Sensitivity and Insight",
   ],
-  "guidance-important-decisions": [
-    "Prayer for Knowing God's Will",
-    "Prayer for Making Big Life Choices",
-    "Prayer for Discernment Between Good and Evil",
-    "Prayer for Relocation or Moving Decisions",
-    "Prayer for Clarity on Calling and Purpose",
-    "Prayer for Peace in Confusion",
-    "Prayer for Patience When God Seems Silent",
-    "Prayer for Wise Counsel and Mentorship",
-    "Prayer Before Signing Contracts or Agreements",
-    "Prayer to Follow the Holy Spirit's Leading",
-    "Prayer for Direction at a Crossroads",
-    "Prayer for Courage to Step Into the Unknown",
-    "Prayer for Closing Wrong Doors and Opening Right Ones",
-    "Prayer for Wisdom When Overwhelmed by Choices",
-    "Prayer for Spiritual Sensitivity and Insight",
-  ],
-
-  // Difficult Times & Hardships
-  "difficult-times-hardships": [
+  hardship: [
     "Prayer When Feeling Overwhelmed",
     "Prayer During Seasons of Grief and Loss",
     "Prayer When Life Feels Unfair",
@@ -245,9 +188,7 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer for God's Presence in Desolation",
     "Prayer When Questioning Your Faith",
   ],
-
-  // Gratitude & Thanksgiving
-  "gratitude-thanksgiving": [
+  gratitude: [
     "Prayer of Gratitude for God's Faithfulness",
     "Prayer of Thanksgiving for Answered Prayers",
     "Prayer for Joy in the Morning",
@@ -266,13 +207,21 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
   ],
 };
 
-export function getSituationsForCategory(slug: string): string[] {
-  if (DEFAULT_CATEGORY_SITUATIONS[slug]) {
-    return DEFAULT_CATEGORY_SITUATIONS[slug];
-  }
-  // Flexible matching for slug variants
-  const key = Object.keys(DEFAULT_CATEGORY_SITUATIONS).find((k) =>
-    slug.includes(k) || k.includes(slug)
-  );
-  return key ? DEFAULT_CATEGORY_SITUATIONS[key]! : [];
+export function getSituationsForCategory(category?: { name?: string; slug?: string } | null): string[] {
+  if (!category) return [];
+  const text = `${category.name ?? ""} ${category.slug ?? ""}`.toLowerCase();
+
+  if (text.includes("financ") || text.includes("money") || text.includes("debt")) return MASTER_SITUATIONS_MAP.finance!;
+  if (text.includes("forgiv") || text.includes("repent") || text.includes("reconcil")) return MASTER_SITUATIONS_MAP.forgiveness!;
+  if (text.includes("school") || text.includes("stud") || text.includes("exam") || text.includes("acad")) return MASTER_SITUATIONS_MAP.school!;
+  if (text.includes("work") || text.includes("career") || text.includes("business") || text.includes("job")) return MASTER_SITUATIONS_MAP.work!;
+  if (text.includes("famil") || text.includes("parent") || text.includes("child")) return MASTER_SITUATIONS_MAP.family!;
+  if (text.includes("love") || text.includes("relation") || text.includes("marri") || text.includes("dating")) return MASTER_SITUATIONS_MAP.love!;
+  if (text.includes("health") || text.includes("heal") || text.includes("sick")) return MASTER_SITUATIONS_MAP.health!;
+  if (text.includes("protect") || text.includes("safe") || text.includes("secur")) return MASTER_SITUATIONS_MAP.protection!;
+  if (text.includes("guid") || text.includes("decis") || text.includes("wisdom")) return MASTER_SITUATIONS_MAP.guidance!;
+  if (text.includes("difficult") || text.includes("hardship") || text.includes("grief") || text.includes("depress")) return MASTER_SITUATIONS_MAP.hardship!;
+  if (text.includes("gratitud") || text.includes("thank") || text.includes("praise")) return MASTER_SITUATIONS_MAP.gratitude!;
+
+  return [];
 }
