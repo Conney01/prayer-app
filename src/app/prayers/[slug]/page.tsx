@@ -1,76 +1,76 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { db } from "~/server/db";
 import { auth } from "~/server/auth";
-import { FavoriteBtn } from "~/components/favorite-btn";
+import { db } from "~/server/db";
+import { ArrowLeft, Sparkles } from "lucide-react";
+import { FavoriteButton } from "~/components/favorite-btn";
 
-export default async function PrayerPage({
-  params,
-}: {
+export const dynamic = "force-dynamic";
+
+export default async function PrayerPage(props: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params;
+  const params = await props.params;
   const session = await auth();
 
   const prayer = await db.prayer.findUnique({
-    where: { slug, isPublished: true },
+    where: { slug: params.slug },
     include: {
       category: true,
       situation: true,
-      favorites: session?.user?.id
-        ? { where: { userId: session.user.id } }
-        : false,
     },
   });
 
-  if (!prayer) {
+  if (!prayer || !prayer.isPublished) {
     notFound();
   }
 
-  const isFavorite = Boolean(prayer.favorites && prayer.favorites.length > 0);
+  let isSaved = false;
+  if (session?.user?.id) {
+    const saved = await db.savedPrayer.findUnique({
+      where: {
+        userId_prayerId: {
+          userId: session.user.id,
+          prayerId: prayer.id,
+        },
+      },
+    });
+    isSaved = !!saved;
+  }
 
   return (
-    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28]">
-      <header className="sticky top-0 z-40 border-b border-[#eedad2] bg-[#fdf0ec]/90 backdrop-blur-md">
-        <div className="mx-auto flex h-18 max-w-4xl items-center justify-between px-8">
+    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] py-8 px-4 sm:px-8">
+      <div className="mx-auto max-w-3xl space-y-8">
+        <div className="flex items-center justify-between border-b border-[#eedad2] pb-4">
           <Link
-            href={`/categories/${prayer.category.slug}`}
-            className="flex items-center space-x-2 text-xs uppercase tracking-[0.2em] text-[#6b635e] hover:text-[#1f3a28] transition"
+            href={prayer.category ? `/categories/${prayer.category.slug}` : "/dashboard"}
+            className="inline-flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider text-[#6b635e] hover:text-[#1f3a28] transition"
           >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            <span>{prayer.category.name}</span>
+            <ArrowLeft className="h-4 w-4" />
+            <span>{prayer.category?.name ?? "Back to Dashboard"}</span>
           </Link>
-          <Link href="/dashboard" className="text-xs uppercase tracking-[0.25em] text-[#1f3a28] font-medium">
-            Sanctuary
-          </Link>
-        </div>
-      </header>
 
-      <main className="mx-auto max-w-2xl px-8 py-20">
-        <div className="text-center">
-          <p className="text-[11px] uppercase tracking-[0.3em] text-[#d4907a] font-medium">
-            {prayer.category.name} {prayer.situation ? `• ${prayer.situation.name}` : ""}
-          </p>
-          <h1 className="mt-3 font-serif text-3xl sm:text-5xl font-light italic tracking-tight text-[#1f3a28]">
-            {prayer.title}
-          </h1>
-        </div>
-
-        <div className="my-10 flex justify-center">
-          <div className="h-px w-16 bg-[#d4907a]/40" />
-        </div>
-
-        <div className="border border-[#eedad2] bg-[#faf3f0] p-10 sm:p-14 shadow-sm">
-          <div className="whitespace-pre-line text-center font-serif text-lg sm:text-xl font-normal leading-[2] text-[#1f3a28]">
-            {prayer.body}
+          <div className="flex items-center space-x-3">
+            <FavoriteButton prayerId={prayer.id} initialIsFavorite={isSaved} />
           </div>
         </div>
 
-        <div className="mt-10 flex items-center justify-center">
-          <FavoriteBtn prayerId={prayer.id} initialIsFavorite={isFavorite} />
-        </div>
-      </main>
+        <article className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-8 sm:p-12 shadow-sm space-y-8">
+          <div className="space-y-2 border-b border-[#eedad2]/60 pb-6">
+            <div className="flex items-center space-x-2 text-[#d4907a] text-xs font-semibold uppercase tracking-wider">
+              <Sparkles className="h-4 w-4" />
+              <span>{prayer.situation?.name ?? prayer.category.name}</span>
+            </div>
+            <h1 className="font-serif text-2xl sm:text-4xl font-bold text-[#1f3a28] leading-tight">
+              {prayer.title}
+            </h1>
+          </div>
+
+          <div className="prose prose-stone font-serif text-base sm:text-lg text-[#1f3a28] leading-relaxed whitespace-pre-wrap">
+            {prayer.body}
+          </div>
+        </article>
+      </div>
     </div>
   );
 }

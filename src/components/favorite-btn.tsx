@@ -44,3 +44,6 @@ export function FavoriteButton({
     </button>
   );
 }
+
+export const FavoriteBtn = FavoriteButton;
+export default FavoriteButton;
