@@ -1,32 +1,26 @@
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
-import bcrypt from "bcryptjs";
 import { db } from "~/server/db";
+import bcrypt from "bcryptjs";
+import { type Role } from "@prisma/client";
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
-      role: "USER" | "ADMIN";
-      currentStreak: number;
+      role: Role;
+      streakCount: number;
     } & DefaultSession["user"];
   }
 
   interface User {
-    role?: "USER" | "ADMIN";
-    currentStreak?: number;
+    role: Role;
+    streakCount: number;
   }
 }
 
 export const authConfig = {
-  trustHost: true,
   providers: [
-    GoogleProvider({
-      clientId: process.env.AUTH_GOOGLE_ID ?? process.env.GOOGLE_CLIENT_ID ?? "",
-      clientSecret: process.env.AUTH_GOOGLE_SECRET ?? process.env.GOOGLE_CLIENT_SECRET ?? "",
-      allowDangerousEmailAccountLinking: true,
-    }),
     CredentialsProvider({
       name: "credentials",
       credentials: {
@@ -34,24 +28,24 @@ export const authConfig = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials) return null;
-        const email = typeof credentials.email === "string" ? credentials.email.trim().toLowerCase() : "";
-        const password = typeof credentials.password === "string" ? credentials.password : "";
-
-        if (!email || !password) {
+        if (!credentials?.email || !credentials?.password) {
           return null;
         }
 
         const user = await db.user.findUnique({
-          where: { email },
+          where: { email: (credentials.email as string).toLowerCase().trim() },
         });
 
-        if (!user?.password) {
+        if (!user || !user.password) {
           return null;
         }
 
-        const passwordsMatch = await bcrypt.compare(password, user.password);
-        if (!passwordsMatch) {
+        const isPasswordValid = await bcrypt.compare(
+          credentials.password as string,
+          user.password
+        );
+
+        if (!isPasswordValid) {
           return null;
         }
 
@@ -60,58 +54,33 @@ export const authConfig = {
           name: user.name,
           email: user.email,
           role: user.role,
-          currentStreak: user.currentStreak,
+          streakCount: user.streakCount,
         };
       },
     }),
   ],
   callbacks: {
-    async signIn({ user, account }) {
-      if (account?.provider === "google" && user.email) {
-        const normalizedEmail = user.email.trim().toLowerCase();
-        const existingUser = await db.user.findUnique({
-          where: { email: normalizedEmail },
-        });
-
-        if (!existingUser) {
-          const newUser = await db.user.create({
-            data: {
-              email: normalizedEmail,
-              name: user.name ?? "Sanctuary Seeker",
-              role: "USER",
-              currentStreak: 1,
-              longestStreak: 1,
-            },
-          });
-          user.id = newUser.id;
-          user.role = newUser.role;
-          user.currentStreak = newUser.currentStreak;
-        } else {
-          user.id = existingUser.id;
-          user.role = existingUser.role;
-          user.currentStreak = existingUser.currentStreak;
-        }
-      }
-      return true;
-    },
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = user.role ?? "USER";
-        token.currentStreak = user.currentStreak ?? 0;
+        token.role = user.role;
+        token.streakCount = user.streakCount;
       }
       return token;
     },
-    session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = typeof token.id === "string" ? token.id : (token.sub ?? "");
-        session.user.role = (token.role as "USER" | "ADMIN") ?? "USER";
-        session.user.currentStreak = typeof token.currentStreak === "number" ? token.currentStreak : 0;
+    async session({ session, token }) {
+      if (session.user && token) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as Role;
+        session.user.streakCount = (token.streakCount as number) ?? 0;
       }
       return session;
     },
   },
   pages: {
     signIn: "/login",
+  },
+  session: {
+    strategy: "jwt",
   },
 } satisfies NextAuthConfig;
