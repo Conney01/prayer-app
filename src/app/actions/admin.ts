@@ -179,7 +179,6 @@ export async function createPrayerAction(
         categoryId: string;
         situation: string;
         body: string;
-        description?: string;
         isFeatured?: boolean;
       }
 ) {
@@ -196,14 +195,12 @@ export async function createPrayerAction(
       categoryId = (data.get("categoryId") as string | null) ?? "";
       situation = (data.get("situation") as string | null) ?? "";
       body = (data.get("body") as string | null) ?? "";
-      description = ((data.get("description") as string | null) ?? "").trim();
       isFeatured = data.get("isFeatured") === "on" || data.get("isFeatured") === "true";
     } else {
       title = data.title;
       categoryId = data.categoryId;
       situation = data.situation;
       body = data.body;
-      description = (data.description ?? "").trim();
       isFeatured = Boolean(data.isFeatured);
     }
 
@@ -272,7 +269,6 @@ export async function updatePrayerAction(
         categoryId: string;
         situation?: string;
         body: string;
-        description?: string;
         isFeatured?: boolean;
         isPublished?: boolean;
       }
@@ -291,7 +287,6 @@ export async function updatePrayerAction(
       categoryId = (data.get("categoryId") as string | null) ?? "";
       situation = (data.get("situation") as string | null) ?? "";
       body = (data.get("body") as string | null) ?? "";
-      description = ((data.get("description") as string | null) ?? "").trim();
       isFeatured = data.get("isFeatured") === "on" || data.get("isFeatured") === "true";
       isPublished = data.get("isPublished") !== "false";
     } else {
@@ -299,7 +294,6 @@ export async function updatePrayerAction(
       categoryId = data.categoryId;
       situation = data.situation ?? "";
       body = data.body;
-      description = (data.description ?? "").trim();
       isFeatured = Boolean(data.isFeatured);
       isPublished = data.isPublished !== undefined ? Boolean(data.isPublished) : true;
     }
