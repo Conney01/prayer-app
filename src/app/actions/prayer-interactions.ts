@@ -1,18 +1,18 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { db } from "~/server/db";
 import { auth } from "~/server/auth";
+import { db } from "~/server/db";
+import { revalidatePath } from "next/cache";
 
-export async function toggleFavoriteAction(prayerId: string) {
+export async function toggleFavoritePrayerAction(prayerId: string) {
   const session = await auth();
   if (!session?.user?.id) {
-    return { error: "Please sign in to save prayers to your favorites." };
+    return { success: false, error: "Unauthorized" };
   }
 
   const userId = session.user.id;
 
-  const existing = await db.favorite.findUnique({
+  const existing = await db.savedPrayer.findUnique({
     where: {
       userId_prayerId: {
         userId,
@@ -22,38 +22,23 @@ export async function toggleFavoriteAction(prayerId: string) {
   });
 
   if (existing) {
-    await db.favorite.delete({
-      where: { id: existing.id },
+    await db.savedPrayer.delete({
+      where: {
+        userId_prayerId: {
+          userId,
+          prayerId,
+        },
+      },
     });
-    revalidatePath("/dashboard");
-    return { isFavorite: false };
   } else {
-    await db.favorite.create({
+    await db.savedPrayer.create({
       data: {
         userId,
         prayerId,
       },
     });
-    revalidatePath("/dashboard");
-    return { isFavorite: true };
   }
-}
-
-export async function completePrayerAction(prayerId: string) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { error: "Please sign in to record your prayer completion." };
-  }
-
-  const userId = session.user.id;
-
-  await db.prayerCompletion.create({
-    data: {
-      userId,
-      prayerId,
-    },
-  });
 
   revalidatePath("/dashboard");
-  return { success: true };
+  return { success: true, isFavorite: !existing };
 }
