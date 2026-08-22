@@ -17,20 +17,7 @@ export function LoginForm() {
       return;
     }
     setError("");
-    try {
-      const res = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-      if (res?.error) {
-        setError("Invalid email or password.");
-      } else {
-        window.location.href = "/dashboard";
-      }
-    } catch {
-      setError("An unexpected error occurred during sign in.");
-    }
+    await signIn("credentials", { email, password, callbackUrl: "/dashboard" });
   };
 
   const handleGoogleSignIn = async () => {
@@ -39,14 +26,7 @@ export function LoginForm() {
       return;
     }
     setError("");
-    try {
-      // Explicitly trigger NextAuth Google provider with error catching
-      const result = await signIn("google", { callbackUrl: "/dashboard" });
-      console.log("Google Sign-In Triggered:", result);
-    } catch (err) {
-      console.error("Google Sign-In Error:", err);
-      setError("Unable to initiate Google sign-in. Check console for details.");
-    }
+    await signIn("google", { callbackUrl: "/dashboard" });
   };
 
   return (
