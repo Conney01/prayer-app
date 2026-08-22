@@ -11,21 +11,36 @@ export default async function DashboardPage() {
   const userId = session?.user?.id;
   const userRole = session?.user?.role;
 
-  const streak = userId ? await getUserStreak(userId) : { streakCount: 3 };
-  const streakCount = streak?.streakCount ?? 3;
+  // Retrieve user streak safely from database (never wiped by UI updates)
+  const streak = userId ? await getUserStreak(userId) : { streakCount: 0 };
+  const streakCount = streak?.streakCount ?? 0;
 
-  // Fetch a featured daily prayer/anchor for the dashboard
-  const featuredPrayer = await db.prayer.findFirst({
-    where: { isPublished: true },
-    include: { category: true, situation: true },
-    orderBy: { createdAt: "desc" },
-  });
+  // Automated daily scripture & reflection rotation based on date
+  const dailyReflections = [
+    {
+      verse: "Rejoice always, pray continually, give thanks in all circumstances; for this is God's will for you in Christ Jesus.",
+      reference: "1 Thessalonians 5:16-18",
+      reflection: "In moments of quiet stillness, God invites us to release our heavy burdens. True prayer is not just about asking, but about resting in His constant presence throughout your day.",
+    },
+    {
+      verse: "Cast all your anxiety on him because he cares for you.",
+      reference: "1 Peter 5:7",
+      reflection: "Whatever weighs on your mind right now—uncertainties, pressures, or fears—take a deep breath and gently place them in God's capable hands.",
+    },
+    {
+      verse: "The Lord is close to the brokenhearted and saves those who are crushed in spirit.",
+      reference: "Psalm 34:18",
+      reflection: "Your vulnerability is never hidden from God. He draws nearest precisely when your heart feels most tender and weary.",
+    },
+  ];
+
+  const todayIndex = new Date().getDate() % dailyReflections.length;
+  const todayAnchor = dailyReflections[todayIndex];
 
   // Calculate current week days dynamically for the streak calendar
   const today = new Date();
   const currentDayOfWeek = today.getDay(); // 0 (Sun) to 6 (Sat)
   
-  // Build days for Saturday to Friday layout matching your original design
   const days = [
     { label: "SAT", offset: -6 + ((currentDayOfWeek + 1) % 7) },
     { label: "SUN", offset: -5 + ((currentDayOfWeek + 1) % 7) },
@@ -63,7 +78,7 @@ export default async function DashboardPage() {
               Sanctuary Space
             </span>
             <h1 className="font-serif text-3xl font-bold text-[#1f3a28] mt-1">
-              Welcome back, {session?.user?.name ?? "Aron Cornellious"}
+              Welcome back, {session?.user?.name ?? "Friend"}
             </h1>
           </div>
           
@@ -113,7 +128,7 @@ export default async function DashboardPage() {
               </div>
               <div>
                 <h3 className="font-serif text-lg font-bold text-[#1f3a28]">
-                  {streakCount} Days in Stillness
+                  {streakCount} {streakCount === 1 ? "Day" : "Days"} in Stillness
                 </h3>
                 <p className="text-xs text-[#6b635e]">
                   Personal best: {Math.max(3, streakCount)} days • Every breath in prayer counts.
@@ -132,7 +147,7 @@ export default async function DashboardPage() {
               const targetDate = new Date();
               targetDate.setDate(today.getDate() + d.offset);
               const dayNum = targetDate.getDate();
-              const isToday = index === 6; // Friday / Today
+              const isToday = index === 6;
 
               return (
                 <div
@@ -160,48 +175,39 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Friday's Sacred Anchor / Daily Devotional Prayer */}
-        {featuredPrayer && (
-          <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-8 shadow-2xs space-y-6">
-            <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-4">
-              <div className="flex items-center space-x-2 text-[#d4907a] text-xs font-semibold uppercase tracking-wider">
-                <Sparkles className="h-4 w-4" />
-                <span>Friday&apos;s Sacred Anchor</span>
-              </div>
-              <span className="text-xs font-serif italic text-[#6b635e]">
-                {featuredPrayer.category?.name ?? "Daily Devotion"}
+        {/* Sacred Anchor: Automated Scripture & Reflection */}
+        <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-8 shadow-2xs space-y-6">
+          <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-4">
+            <div className="flex items-center space-x-2 text-[#d4907a] text-xs font-semibold uppercase tracking-wider">
+              <Sparkles className="h-4 w-4" />
+              <span>Sacred Anchor & Reflection</span>
+            </div>
+            <span className="text-xs font-serif italic text-[#6b635e]">
+              Daily Meditation
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-[#eedad2] bg-white p-6 shadow-2xs space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#6b635e]">
+                Scripture Anchor
               </span>
+              <blockquote className="font-serif text-base sm:text-lg text-[#1f3a28] italic leading-relaxed">
+                &ldquo;{todayAnchor.verse}&rdquo;
+              </blockquote>
+              <p className="text-xs text-[#6b635e] font-serif font-semibold pt-1">— {todayAnchor.reference}</p>
             </div>
 
-            <div className="space-y-4">
-              <div className="rounded-2xl border border-[#eedad2] bg-white p-6 shadow-2xs space-y-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6b635e]">
-                  Scripture Anchor
-                </span>
-                <blockquote className="font-serif text-base sm:text-lg text-[#1f3a28] italic leading-relaxed">
-                  &ldquo;{featuredPrayer.body.substring(0, 140)}...&rdquo;
-                </blockquote>
-              </div>
-
-              <div className="space-y-2 pt-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#d4907a]">
-                  Today&apos;s Devotional Prayer
-                </span>
-                <Link
-                  href={`/prayers/${featuredPrayer.slug}`}
-                  className="block group"
-                >
-                  <h3 className="font-serif text-2xl sm:text-3xl font-bold text-[#1f3a28] group-hover:text-[#d4907a] transition">
-                    {featuredPrayer.title}
-                  </h3>
-                </Link>
-                <p className="font-serif text-sm text-[#6b635e] line-clamp-3 leading-relaxed">
-                  {featuredPrayer.body}
-                </p>
-              </div>
+            <div className="space-y-2 pt-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#d4907a]">
+                Today&apos;s Reflection
+              </span>
+              <p className="font-serif text-sm sm:text-base text-[#1f3a28] leading-relaxed">
+                {todayAnchor.reflection}
+              </p>
             </div>
           </div>
-        )}
+        </div>
 
         {/* Prayer Collections Section */}
         <div className="space-y-6">
