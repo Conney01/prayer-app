@@ -8,17 +8,21 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    signIn("credentials", { email, password, callbackUrl: "/dashboard" });
+    await signIn("credentials", { email, password, callbackUrl: "/dashboard" });
+  };
+
+  const handleGoogleSignIn = async () => {
+    await signIn("google", { callbackUrl: "/dashboard" });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <button
         type="button"
-        onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-        className="w-full rounded-xl border border-[#eedad2] bg-white py-3 text-xs font-bold uppercase tracking-wider text-[#1f3a28] hover:bg-[#faf3f0] transition shadow-2xs"
+        onClick={handleGoogleSignIn}
+        className="w-full rounded-xl border border-[#eedad2] bg-white py-3 text-xs font-bold uppercase tracking-wider text-[#1f3a28] hover:bg-[#faf3f0] transition shadow-2xs cursor-pointer"
       >
         Continue with Google
       </button>
@@ -39,12 +43,12 @@ export function LoginForm() {
       />
       <button
         type="submit"
-        className="w-full rounded-xl bg-[#2d5a3d] py-3 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#1f3a28] transition shadow-2xs"
+        className="w-full rounded-xl bg-[#2d5a3d] py-3 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#1f3a28] transition shadow-2xs cursor-pointer"
       >
         Sign In
       </button>
       <p className="text-center text-[11px] text-[#6b635e]">
-        Don&apos;t have an account? <Link href="/register" className="text-[#d4907a] font-semibold">Create one</Link>
+        Don&apos;t have an account? <Link href="/register" className="text-[#d4907a] font-semibold underline">Create one</Link>
       </p>
     </form>
   );
