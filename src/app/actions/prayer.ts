@@ -8,6 +8,7 @@ export async function savePrayerAction(data: {
   categoryId: string;
   newCategoryName?: string;
   title: string;
+  originalTitle?: string;
   body: string;
 }) {
   try {
@@ -26,21 +27,37 @@ export async function savePrayerAction(data: {
     }
 
     if (data.id) {
+      // If editing, keep the original title if they didn't change the base situation
+      const baseOriginal = data.originalTitle?.split(/ [-—] /)[0]?.trim();
+      const finalUpdateTitle = (baseOriginal === data.title) ? data.originalTitle : data.title;
+
       await db.prayer.update({
         where: { id: data.id },
         data: {
-          title: data.title,
+          title: finalUpdateTitle ?? data.title,
           body: data.body,
           categoryId,
         },
       });
     } else {
-      const baseSlug = data.title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      // If creating new, auto-append the correct number (e.g. " — Prayer 6")
+      const existingCount = await db.prayer.count({
+        where: {
+          categoryId,
+          title: { startsWith: data.title },
+        },
+      });
+
+      const finalTitle = existingCount > 0 
+        ? `${data.title} — Prayer ${existingCount + 1}` 
+        : `${data.title} — Prayer 1`;
+
+      const baseSlug = finalTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-");
       const uniqueSlug = `${baseSlug}-${Date.now().toString().slice(-4)}`;
 
       await db.prayer.create({
         data: {
-          title: data.title,
+          title: finalTitle,
           body: data.body,
           categoryId,
           slug: uniqueSlug,

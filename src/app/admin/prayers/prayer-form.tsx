@@ -24,15 +24,23 @@ export function PrayerForm({
   const [newCategoryName, setNewCategoryName] = useState("");
   const [isAddingCategory, setIsAddingCategory] = useState(false);
 
-  const [title, setTitle] = useState(initialData?.title ?? "");
+  // Extract the clean base situation if editing (e.g. remove " — Prayer 1")
+  const initialCleanTitle = initialData?.title?.split(/ [-—] /)[0]?.trim() ?? "";
+  
+  const [title, setTitle] = useState(initialCleanTitle);
   const [newSituationName, setNewSituationName] = useState("");
 
   const [body, setBody] = useState(initialData?.body ?? "");
   const [error, setError] = useState("");
 
+  // Group by base situation name so the dropdown is perfectly clean
   const availableSituations = Array.from(
-    new Set(prayers.filter((p) => p.categoryId === categoryId).map((p) => p.title))
-  );
+    new Set(
+      prayers
+        .filter((p) => p.categoryId === categoryId)
+        .map((p) => p.title.split(/ [-—] /)[0]?.trim())
+    )
+  ).filter(Boolean).sort();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +71,7 @@ export function PrayerForm({
         newCategoryName: finalCategoryId === "NEW" ? newCategoryName.trim() : undefined,
         title: finalTitle,
         body,
+        originalTitle: initialData?.title, // Pass original to prevent renaming edits
       });
 
       if (res.success) {
