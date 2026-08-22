@@ -1,23 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  async function handleSubmit(e: React.FormEvent) {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    if (!acceptedTerms) {
+      setError("You must accept the Terms & Conditions to register.");
+      return;
+    }
 
     try {
       const res = await fetch("/api/register", {
@@ -26,141 +32,126 @@ export default function RegisterPage() {
         body: JSON.stringify({ name, email, password }),
       });
 
-      const data = (await res.json()) as { error?: string };
-
-      if (!res.ok) {
-        setError(data.error ?? "Failed to create account. Please try again.");
-        setLoading(false);
-        return;
-      }
-
-      const loginRes = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (loginRes?.error) {
+      if (res.ok) {
         router.push("/login");
       } else {
-        router.push("/dashboard");
-        router.refresh();
+        const data = await res.json();
+        setError(data.message || "Registration failed.");
       }
     } catch {
-      setError("An unexpected error occurred. Please try again.");
-      setLoading(false);
+      setError("An unexpected error occurred.");
     }
-  }
-
-  function handleGoogleSignIn() {
-    void signIn("google", { callbackUrl: "/dashboard" });
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center px-4">
-        <Link href="/" className="inline-flex items-center space-x-3 group">
-          <div className="relative h-10 w-10 overflow-hidden rounded-lg border border-[#eedad2] bg-[#faf3f0] shadow-sm">
-            <Image src="/logo.jpg" alt="Logo" fill sizes="40px" className="object-cover" priority />
-          </div>
-          <span className="font-serif text-lg font-semibold uppercase tracking-[0.25em] text-[#1f3a28]">
-            Sanctuary
-          </span>
-        </Link>
-        <h2 className="mt-4 font-serif text-2xl sm:text-3xl font-light italic text-[#1f3a28]">
-          Begin Your Journey
-        </h2>
-        <p className="mt-1 text-xs text-[#6b635e]">Create a sacred space for your daily prayers</p>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">
-        <div className="border border-[#eedad2] bg-[#faf3f0] px-6 py-8 sm:p-10 shadow-sm space-y-6">
-          {error && (
-            <div className="border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            className="w-full flex items-center justify-center space-x-3 border border-[#eedad2] bg-white py-3 px-4 text-xs uppercase tracking-[0.18em] font-medium text-[#1f3a28] hover:bg-[#fdf0ec] transition cursor-pointer"
+    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] flex flex-col justify-between py-8 px-4 sm:px-8">
+      <div className="max-w-md mx-auto w-full space-y-6">
+        <div>
+          <Link
+            href="/"
+            className="inline-flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider text-[#6b635e] hover:text-[#1f3a28] transition"
           >
-            <span>Continue with Google</span>
-          </button>
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Home</span>
+          </Link>
+        </div>
 
-          <div className="relative flex items-center justify-center">
-            <div className="w-full border-t border-[#eedad2]" />
-            <span className="bg-[#faf3f0] px-3 text-[10px] uppercase tracking-[0.2em] text-[#6b635e] absolute">
-              Or register with email
-            </span>
-          </div>
+        <div className="text-center space-y-2">
+          <h1 className="font-serif text-3xl font-bold text-[#1f3a28]">
+            Begin Your Journey
+          </h1>
+          <p className="text-xs text-[#6b635e]">
+            Create an account to track your prayer rhythm and streaks
+          </p>
+        </div>
 
-          <form
-            onSubmit={(e) => {
-              void handleSubmit(e);
-            }}
-            className="space-y-4 pt-2"
-          >
-            <div>
-              <label className="block text-[10px] uppercase tracking-[0.2em] font-medium text-[#1f3a28] mb-1.5">
-                Your Name
+        <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-2xs">
+          <form onSubmit={handleRegister} className="space-y-4">
+            {error && (
+              <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-xs text-red-600 text-center font-medium">
+                {error}
+              </div>
+            )}
+
+            <input
+              type="text"
+              placeholder="Full Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="w-full rounded-xl border border-[#eedad2] bg-white p-3 text-xs text-[#1f3a28] focus:border-[#d4907a] outline-none transition"
+            />
+
+            <input
+              type="email"
+              placeholder="Email Address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full rounded-xl border border-[#eedad2] bg-white p-3 text-xs text-[#1f3a28] focus:border-[#d4907a] outline-none transition"
+            />
+
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full rounded-xl border border-[#eedad2] bg-white p-3 text-xs text-[#1f3a28] focus:border-[#d4907a] outline-none transition"
+            />
+
+            <input
+              type="password"
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              className="w-full rounded-xl border border-[#eedad2] bg-white p-3 text-xs text-[#1f3a28] focus:border-[#d4907a] outline-none transition"
+            />
+
+            {/* Scrollable Terms & Conditions Box */}
+            <div className="space-y-2 pt-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-[#6b635e]">
+                Terms & Conditions
               </label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none"
-              />
-            </div>
+              <div className="h-24 overflow-y-auto rounded-xl border border-[#eedad2] bg-white p-3 text-[11px] text-[#6b635e] leading-relaxed space-y-2 shadow-inner">
+                <p className="font-bold text-[#1f3a28]">Sanctuary Community Guidelines</p>
+                <p>
+                  By registering an account with Sanctuary, you agree to uphold a spirit of reverence, prayer, and respect. Your data and devotional history are securely protected.
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-[10px] uppercase tracking-[0.2em] font-medium text-[#1f3a28] mb-1.5">
-                Email Address
-              </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[10px] uppercase tracking-[0.2em] font-medium text-[#1f3a28] mb-1.5">
-                Password
-              </label>
-              <input
-                type="password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none"
-              />
+              <div className="flex items-center space-x-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="reg-terms"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="rounded border-[#eedad2] text-[#2d5a3d] focus:ring-[#2d5a3d]"
+                />
+                <label htmlFor="reg-terms" className="text-[11px] text-[#1f3a28] font-medium cursor-pointer">
+                  I agree to the Terms & Conditions
+                </label>
+              </div>
             </div>
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-[#2d5a3d] py-3 text-xs font-medium uppercase tracking-[0.2em] text-white hover:bg-[#1f3a28] transition disabled:opacity-50 cursor-pointer"
+              className="w-full rounded-xl bg-[#2d5a3d] py-3 text-xs font-bold uppercase tracking-wider text-white hover:bg-[#1f3a28] transition shadow-2xs cursor-pointer"
             >
-              {loading ? "Creating Account..." : "Create Account"}
+              Create Account
             </button>
-          </form>
 
-          <div className="text-center pt-2 border-t border-[#eedad2]/60">
-            <p className="text-xs text-[#6b635e]">
-              Already have an account?{" "}
-              <Link href="/login" className="font-semibold text-[#2d5a3d] hover:underline">
-                Sign in
-              </Link>
+            <p className="text-center text-[11px] text-[#6b635e]">
+              Already have an account? <Link href="/login" className="text-[#d4907a] font-semibold underline">Sign in</Link>
             </p>
-          </div>
+          </form>
         </div>
       </div>
+
+      <footer className="text-center text-xs text-[#6b635e] font-serif pt-8">
+        <p>© 2026 Sanctuary. Grace over perfection.</p>
+      </footer>
     </div>
   );
 }
