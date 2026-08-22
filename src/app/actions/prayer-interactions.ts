@@ -4,7 +4,7 @@ import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { revalidatePath } from "next/cache";
 
-export async function toggleFavoritePrayerAction(prayerId: string) {
+export async function toggleFavoriteAction(prayerId: string) {
   const session = await auth();
   if (!session?.user?.id) {
     return { success: false, error: "Unauthorized" };
@@ -42,3 +42,5 @@ export async function toggleFavoritePrayerAction(prayerId: string) {
   revalidatePath("/dashboard");
   return { success: true, isFavorite: !existing };
 }
+
+export const toggleFavoritePrayerAction = toggleFavoriteAction;

@@ -1,51 +1,46 @@
 "use client";
 
-import { useState } from "react";
-import { Heart, Loader2 } from "lucide-react";
+import { useState, useTransition } from "react";
+import { Bookmark, Loader2 } from "lucide-react";
 import { toggleFavoriteAction } from "~/app/actions/prayer-interactions";
 
-export function FavoriteBtn({
+export function FavoriteButton({
   prayerId,
-  initialIsFavorite,
+  initialIsFavorite = false,
 }: {
   prayerId: string;
-  initialIsFavorite: boolean;
+  initialIsFavorite?: boolean;
 }) {
   const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
-  async function handleToggle() {
-    if (loading) return;
-    setLoading(true);
-
-    const res = await toggleFavoriteAction(prayerId);
-    setLoading(false);
-
-    if (res && typeof res.isFavorite === "boolean") {
-      setIsFavorite(res.isFavorite);
-    }
-  }
+  const handleToggle = () => {
+    startTransition(async () => {
+      const res = await toggleFavoriteAction(prayerId);
+      if (res.success && res.isFavorite !== undefined) {
+        setIsFavorite(res.isFavorite);
+      }
+    });
+  };
 
   return (
     <button
       onClick={handleToggle}
-      disabled={loading}
-      className={`flex items-center space-x-2 border px-6 py-3.5 text-xs font-medium uppercase tracking-[0.18em] transition ${
+      disabled={isPending}
+      className={`inline-flex items-center space-x-1.5 rounded-xl border px-3.5 py-2 text-xs font-semibold transition shadow-xs ${
         isFavorite
-          ? "border-[#d4907a] bg-[#d4907a]/15 text-[#1f3a28]"
-          : "border-[#eedad2] bg-[#faf3f0] text-[#6b635e] hover:border-[#2d5a3d] hover:text-[#1f3a28]"
+          ? "border-[#2d5a3d] bg-[#2d5a3d] text-white"
+          : "border-[#eedad2] bg-white text-[#1f3a28] hover:bg-[#faf3f0]"
       }`}
     >
-      {loading ? (
-        <Loader2 className="h-4 w-4 animate-spin text-[#d4907a]" />
+      {isPending ? (
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
       ) : (
-        <Heart
-          className={`h-4 w-4 transition ${
-            isFavorite ? "fill-[#d4907a] text-[#d4907a]" : ""
-          }`}
+        <Bookmark
+          className={`h-3.5 w-3.5 ${isFavorite ? "fill-white" : ""}`}
         />
       )}
-      <span>{isFavorite ? "Saved to Sanctuary" : "Save to Favorites"}</span>
+      <span>{isFavorite ? "Saved" : "Save Prayer"}</span>
     </button>
   );
 }
