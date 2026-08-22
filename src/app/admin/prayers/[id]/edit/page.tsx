@@ -9,7 +9,7 @@ export const metadata = { title: "Edit Prayer | Sanctuary Admin" };
 
 export default async function EditPrayerPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
-  const categories = await db.category.findMany({ orderBy: { sortOrder: "asc" } });
+  const categories = await db.category.findMany({ select: { id: true, name: true, slug: true }, orderBy: { sortOrder: "asc" } });
   const prayers = await db.prayer.findMany({ select: { id: true, title: true, categoryId: true, body: true } });
   const prayer = await db.prayer.findUnique({ where: { id: params.id } });
 

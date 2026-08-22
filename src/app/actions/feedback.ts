@@ -14,7 +14,7 @@ export async function submitFeedbackAction(data: { email?: string; message: stri
     });
     revalidatePath("/admin");
     return { success: true, message: "Thank you! Your feedback has been sent to the Sanctuary team." };
-  } catch (_error) {
+  } catch {
     return { success: false, error: "Failed to submit feedback. Please try again." };
   }
 }

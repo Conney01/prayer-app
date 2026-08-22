@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "New Prayer | Sanctuary Admin" };
 
 export default async function NewPrayerPage() {
-  const categories = await db.category.findMany({ orderBy: { sortOrder: "asc" } });
+  const categories = await db.category.findMany({ select: { id: true, name: true, slug: true }, orderBy: { sortOrder: "asc" } });
   const prayers = await db.prayer.findMany({ select: { id: true, title: true, categoryId: true, body: true } });
 
   return (

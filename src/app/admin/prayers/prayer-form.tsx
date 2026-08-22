@@ -3,15 +3,16 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { savePrayerAction } from "~/app/actions/prayer";
+import { DEFAULT_CATEGORY_SITUATIONS } from "~/lib/situations";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 
-type Category = { id: string; name: string };
+type Category = { id: string; name: string; slug: string };
 type Prayer = { id: string; title: string; categoryId: string; body: string };
 
 export function PrayerForm({
   categories,
   prayers,
-  initialData
+  initialData,
 }: {
   categories: Category[];
   prayers: Prayer[];
@@ -24,23 +25,22 @@ export function PrayerForm({
   const [newCategoryName, setNewCategoryName] = useState("");
   const [isAddingCategory, setIsAddingCategory] = useState(false);
 
-  // Extract the clean base situation if editing (e.g. remove " — Prayer 1")
   const initialCleanTitle = initialData?.title?.split(/ [-—] /)[0]?.trim() ?? "";
-  
   const [title, setTitle] = useState(initialCleanTitle);
   const [newSituationName, setNewSituationName] = useState("");
 
   const [body, setBody] = useState(initialData?.body ?? "");
   const [error, setError] = useState("");
 
-  // Group by base situation name so the dropdown is perfectly clean
-  const availableSituations = Array.from(
-    new Set(
-      prayers
-        .filter((p) => p.categoryId === categoryId)
-        .map((p) => p.title.split(/ [-—] /)[0]?.trim())
-    )
-  ).filter(Boolean).sort();
+  const selectedCategory = categories.find((c) => c.id === categoryId);
+  const defaultList = selectedCategory ? (DEFAULT_CATEGORY_SITUATIONS[selectedCategory.slug] ?? []) : [];
+
+  const existingDbSituations = prayers
+    .filter((p) => p.categoryId === categoryId)
+    .map((p) => p.title.split(/ [-—] /)[0]?.trim())
+    .filter(Boolean) as string[];
+
+  const allSituations = Array.from(new Set([...defaultList, ...existingDbSituations])).sort();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,14 +71,14 @@ export function PrayerForm({
         newCategoryName: finalCategoryId === "NEW" ? newCategoryName.trim() : undefined,
         title: finalTitle,
         body,
-        originalTitle: initialData?.title, // Pass original to prevent renaming edits
+        originalTitle: initialData?.title,
       });
 
       if (res.success) {
         router.push("/admin");
         router.refresh();
       } else {
-        setError(res.error ?? "Failed to save.");
+        setError(res.error ?? "Failed to save prayer.");
       }
     });
   };
@@ -162,16 +162,23 @@ export function PrayerForm({
             disabled={!categoryId && !isAddingCategory}
             className="w-full rounded-xl border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none disabled:opacity-50"
           >
-            <option value="">Select existing situation...</option>
-            {availableSituations.map((sit) => (
-              <option key={sit} value={sit}>{sit}</option>
-            ))}
+            <option value="">Select a situation ({allSituations.length} available)...</option>
+            {allSituations.map((sit) => {
+              const count = prayers.filter(
+                (p) => p.categoryId === categoryId && p.title.startsWith(sit)
+              ).length;
+              return (
+                <option key={sit} value={sit}>
+                  {sit} ({count} {count === 1 ? "prayer" : "prayers"})
+                </option>
+              );
+            })}
           </select>
 
           <div className="flex items-center space-x-2">
             <input
               type="text"
-              placeholder="Or enter new situation name..."
+              placeholder="Or enter new custom situation..."
               value={newSituationName}
               onChange={(e) => {
                 setNewSituationName(e.target.value);
@@ -182,11 +189,9 @@ export function PrayerForm({
             />
             <button
               type="button"
-              onClick={() => {
-                setNewSituationName("");
-              }}
+              onClick={() => setNewSituationName("")}
               disabled={!newSituationName}
-              className="p-2.5 rounded-xl border border-[#eedad2] bg-white text-[#6b635e] hover:text-red-500 transition shadow-xs disabled:opacity-50 disabled:hover:text-[#6b635e]"
+              className="p-2.5 rounded-xl border border-[#eedad2] bg-white text-[#6b635e] hover:text-red-500 transition shadow-xs disabled:opacity-50"
             >
               <Trash2 className="h-4 w-4" />
             </button>
