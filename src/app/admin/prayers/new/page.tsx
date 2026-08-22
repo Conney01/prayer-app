@@ -1,32 +1,25 @@
-import { redirect } from "next/navigation";
-import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { NewPrayerForm } from "./new-prayer-form";
+import { PrayerForm } from "../prayer-form";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "New Prayer | Sanctuary Admin" };
 
 export default async function NewPrayerPage() {
-  const session = await auth();
+  const categories = await db.category.findMany({ orderBy: { sortOrder: "asc" } });
+  const prayers = await db.prayer.findMany({ select: { id: true, title: true, categoryId: true, body: true } });
 
-  if (session?.user?.role !== "ADMIN") {
-    redirect("/login");
-  }
-
-  const rawCategories = await db.category.findMany({
-    orderBy: { name: "asc" },
-    include: {
-      situations: {
-        orderBy: { name: "asc" },
-      },
-    },
-  });
-
-  const initialCategories = rawCategories.map((cat) => ({
-    id: cat.id,
-    name: cat.name,
-    slug: cat.slug,
-    situations: cat.situations.map((s) => s.name),
-  }));
-
-  return <NewPrayerForm initialCategories={initialCategories} />;
+  return (
+    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] py-8 px-4 sm:px-8">
+      <div className="mx-auto max-w-4xl space-y-6">
+        <Link href="/admin" className="inline-flex items-center space-x-2 text-xs font-semibold text-[#6b635e] hover:text-[#1f3a28] transition">
+          <ArrowLeft className="h-4 w-4" />
+          <span>Back to Curator Panel</span>
+        </Link>
+        <h1 className="font-serif text-2xl font-bold">Draft New Devotional</h1>
+        <PrayerForm categories={categories} prayers={prayers} />
+      </div>
+    </div>
+  );
 }
