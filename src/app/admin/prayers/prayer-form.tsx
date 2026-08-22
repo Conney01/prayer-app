@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { savePrayerAction } from "~/app/actions/prayer";
-import { DEFAULT_CATEGORY_SITUATIONS } from "~/lib/situations";
+import { getSituationsForCategory } from "~/lib/situations";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 
 type Category = { id: string; name: string; slug: string };
@@ -33,7 +33,7 @@ export function PrayerForm({
   const [error, setError] = useState("");
 
   const selectedCategory = categories.find((c) => c.id === categoryId);
-  const defaultList = selectedCategory ? (DEFAULT_CATEGORY_SITUATIONS[selectedCategory.slug] ?? []) : [];
+  const defaultList = selectedCategory ? getSituationsForCategory(selectedCategory.slug) : [];
 
   const existingDbSituations = prayers
     .filter((p) => p.categoryId === categoryId)

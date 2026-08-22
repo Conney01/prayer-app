@@ -1,18 +1,53 @@
 export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
+  // Forgiveness & Repentance
   "forgiveness-repentance": [
-    "Prayer of Repentance",
+    "Prayer for Forgiveness of Sins",
+    "Prayer After Hurting Someone",
+    "Prayer Before Asking Someone for Forgiveness",
+    "Prayer for Forgiveness",
+    "Prayer for Forgiving Yourself",
+    "Prayer for Freedom from Bitterness",
+    "Prayer for God's Mercy",
+    "Prayer for Healing a Broken Relationship",
     "Prayer for Peace After Conflict",
     "Prayer for Reconciliation in a Relationship",
-    "Prayer for Restoring a Friendship",
     "Prayer for Restoring Trust",
+    "Prayer for Restoring a Friendship",
+    "Prayer for a Fresh Start",
+    "Prayer for a Repentant Heart",
     "Prayer for the Grace to Forgive Others",
+    "Prayer of Repentance",
     "Prayer to Let Go of Resentment",
     "Prayer When Someone Has Hurt You",
-    "Prayer for Forgiving Oneself",
     "Prayer for Humility to Seek Forgiveness",
-    "Prayer for Healing Broken Family Ties",
     "Prayer to Break Chains of Bitterness",
+    "Prayer for Healing Broken Family Ties",
   ],
+  "forgiveness-repentance-reconciliation": [
+    "Prayer for Forgiveness of Sins",
+    "Prayer After Hurting Someone",
+    "Prayer Before Asking Someone for Forgiveness",
+    "Prayer for Forgiveness",
+    "Prayer for Forgiving Yourself",
+    "Prayer for Freedom from Bitterness",
+    "Prayer for God's Mercy",
+    "Prayer for Healing a Broken Relationship",
+    "Prayer for Peace After Conflict",
+    "Prayer for Reconciliation in a Relationship",
+    "Prayer for Restoring Trust",
+    "Prayer for Restoring a Friendship",
+    "Prayer for a Fresh Start",
+    "Prayer for a Repentant Heart",
+    "Prayer for the Grace to Forgive Others",
+    "Prayer of Repentance",
+    "Prayer to Let Go of Resentment",
+    "Prayer When Someone Has Hurt You",
+    "Prayer for Humility to Seek Forgiveness",
+    "Prayer to Break Chains of Bitterness",
+    "Prayer for Healing Broken Family Ties",
+  ],
+
+  // School, Studies & Exams
   "school-studies-exams": [
     "Prayer for Exam Peace and Focus",
     "Prayer for Clarity During Lectures",
@@ -24,7 +59,17 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer for Confidence in Presentations",
     "Prayer for Good Teachers and Mentors",
     "Prayer for Balance in Student Life",
+    "Prayer Before an Important Exam",
+    "Prayer for Overcoming Procrastination",
+    "Prayer for Wisdom in Choosing a Major or Career",
+    "Prayer for Group Projects and Teamwork",
+    "Prayer for Relieving Study Stress and Fatigue",
+    "Prayer for Godly Friendships at School",
+    "Prayer for Thesis & Research Clarity",
+    "Prayer for Academic Excellence",
   ],
+
+  // Work, Career & Business
   "work-career-business": [
     "Prayer for Job Interview Confidence",
     "Prayer for Promotion and Favor at Work",
@@ -36,7 +81,17 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer for Peaceful Relations with Boss and Coworkers",
     "Prayer for Creative Inspiration at Work",
     "Prayer for Work-Life Balance",
+    "Prayer for Divine Guidance in Career Direction",
+    "Prayer Over Loss of Job or Unemployment",
+    "Prayer for Godly Leadership and Humility",
+    "Prayer for Diligence and Focus at Work",
+    "Prayer for Fair Treatment and Justice in the Workplace",
+    "Prayer for Blessing Over Business Clients and Customers",
+    "Prayer for Starting a New Business Venture",
+    "Prayer for Stress Relief During Work Deadlines",
   ],
+
+  // Financial Difficulties
   "financial-difficulties": [
     "Prayer for Freedom from Debt",
     "Prayer for Provision in Times of Lack",
@@ -48,7 +103,15 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer for Business Capital & Investment",
     "Prayer for Family Financial Security",
     "Prayer to Trust God as the Ultimate Provider",
+    "Prayer When Facing Financial Crisis",
+    "Prayer to Break Scarcity Mindsets",
+    "Prayer for Wisdom in Budgeting and Spending",
+    "Prayer for Protection Over Assets and Income",
+    "Prayer for Integrity in Financial Dealings",
+    "Prayer for Tithing and Cheerful Giving",
   ],
+
+  // Family
   "family": [
     "Prayer for Protection Over Children",
     "Prayer for Marital Harmony and Love",
@@ -60,7 +123,15 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer for Expecting Parents and Babies",
     "Prayer for Single Parents",
     "Prayer for Grieving Families",
+    "Prayer for Salvation of Family Members",
+    "Prayer for Extended Family Relationships",
+    "Prayer When Parents Are Aging",
+    "Prayer Over Family Conflict and Estrangement",
+    "Prayer for Blessing Over the Family Home",
+    "Prayer for In-Law Relationships",
   ],
+
+  // Love & Relationships
   "love-relationships": [
     "Prayer for Finding a Godly Partner",
     "Prayer for Courtship and Dating Wisdom",
@@ -72,7 +143,15 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer for Patience in Waiting",
     "Prayer to Overcome Jealousy and Insecurity",
     "Prayer for Deep and Loyal Friendships",
+    "Prayer for Communication in Relationships",
+    "Prayer When Feeling Unloved or Rejected",
+    "Prayer for Trust and Vulnerability",
+    "Prayer for Discernment in Romantic Pursuits",
+    "Prayer for Honoring God Through Singleness",
+    "Prayer for Healing Heartbreak and Betrayal",
   ],
+
+  // Health & Healing
   "health-healing": [
     "Prayer for Physical Healing from Disease",
     "Prayer for Mental Health and Inner Calm",
@@ -84,7 +163,15 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer for Overcoming Addiction and Habits",
     "Prayer for Sound Sleep and Rest",
     "Prayer for Divine Life and Vitality",
+    "Prayer for Deliverance from Anxiety and Panic",
+    "Prayer for a Sick Child or Family Member",
+    "Prayer When Receiving a Difficult Medical Diagnosis",
+    "Prayer for Renewal of Strength and Energy",
+    "Prayer for Spiritual Healing of the Soul",
+    "Prayer for Immune System Strengthening",
   ],
+
+  // Protection & Safety
   "protection-safety": [
     "Prayer for Safe Travel on Journeys",
     "Prayer for Spiritual Warfare and Deliverance",
@@ -96,7 +183,14 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer for Angels of Protection",
     "Prayer to Stand Strong in God's Armor",
     "Prayer for Refuge in Times of Storms",
+    "Prayer for Protection from Harmful Influences",
+    "Prayer for Security at Night",
+    "Prayer Against Enemy Schemes and Traps",
+    "Prayer for Divine Guidance in Dangerous Times",
+    "Prayer for Protection at Work and School",
   ],
+
+  // Guidance & Important Decisions
   "guidance-decisions": [
     "Prayer for Knowing God's Will",
     "Prayer for Making Big Life Choices",
@@ -108,7 +202,31 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer for Wise Counsel and Mentorship",
     "Prayer Before Signing Contracts or Agreements",
     "Prayer to Follow the Holy Spirit's Leading",
+    "Prayer for Direction at a Crossroads",
+    "Prayer for Courage to Step Into the Unknown",
+    "Prayer for Closing Wrong Doors and Opening Right Ones",
+    "Prayer for Wisdom When Overwhelmed by Choices",
+    "Prayer for Spiritual Sensitivity and Insight",
   ],
+  "guidance-important-decisions": [
+    "Prayer for Knowing God's Will",
+    "Prayer for Making Big Life Choices",
+    "Prayer for Discernment Between Good and Evil",
+    "Prayer for Relocation or Moving Decisions",
+    "Prayer for Clarity on Calling and Purpose",
+    "Prayer for Peace in Confusion",
+    "Prayer for Patience When God Seems Silent",
+    "Prayer for Wise Counsel and Mentorship",
+    "Prayer Before Signing Contracts or Agreements",
+    "Prayer to Follow the Holy Spirit's Leading",
+    "Prayer for Direction at a Crossroads",
+    "Prayer for Courage to Step Into the Unknown",
+    "Prayer for Closing Wrong Doors and Opening Right Ones",
+    "Prayer for Wisdom When Overwhelmed by Choices",
+    "Prayer for Spiritual Sensitivity and Insight",
+  ],
+
+  // Difficult Times & Hardships
   "difficult-times-hardships": [
     "Prayer When Feeling Overwhelmed",
     "Prayer During Seasons of Grief and Loss",
@@ -120,7 +238,15 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer to Anchor Faith in the Storm",
     "Prayer for Comfort in Loneliness",
     "Prayer for Strength to Endure One More Day",
+    "Prayer When Feeling Hopeless",
+    "Prayer When Waiting for a Miracle",
+    "Prayer When Tears Won't Stop",
+    "Prayer for Rest in the Middle of Turmoil",
+    "Prayer for God's Presence in Desolation",
+    "Prayer When Questioning Your Faith",
   ],
+
+  // Gratitude & Thanksgiving
   "gratitude-thanksgiving": [
     "Prayer of Gratitude for God's Faithfulness",
     "Prayer of Thanksgiving for Answered Prayers",
@@ -132,5 +258,21 @@ export const DEFAULT_CATEGORY_SITUATIONS: Record<string, string[]> = {
     "Prayer Thanking God for Simple Joys",
     "Prayer for Divine Peace That Surpasses Understanding",
     "Prayer of Worship and Adoration",
+    "Prayer of Gratitude for God's Unconditional Love",
+    "Prayer of Thanksgiving for Spiritual Growth",
+    "Prayer of Praise for God's Provision and Grace",
+    "Prayer for Remembering Past Deliverances",
+    "Prayer of Thanksgiving for Answered Intercessions",
   ],
 };
+
+export function getSituationsForCategory(slug: string): string[] {
+  if (DEFAULT_CATEGORY_SITUATIONS[slug]) {
+    return DEFAULT_CATEGORY_SITUATIONS[slug];
+  }
+  // Flexible matching for slug variants
+  const key = Object.keys(DEFAULT_CATEGORY_SITUATIONS).find((k) =>
+    slug.includes(k) || k.includes(slug)
+  );
+  return key ? DEFAULT_CATEGORY_SITUATIONS[key]! : [];
+}
