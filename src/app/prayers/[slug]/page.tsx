@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { FavoriteButton } from "~/components/favorite-btn";
 
 export const dynamic = "force-dynamic";
@@ -38,12 +38,9 @@ export default async function PrayerPage(props: {
     isSaved = !!saved;
   }
 
-  // Preserve the original text flow
-  const paragraphs = prayer.body.split(/\n\n+/);
-
   return (
     <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] py-10 px-4 sm:px-8">
-      <div className="mx-auto max-w-2xl space-y-8">
+      <div className="mx-auto max-w-2xl space-y-12">
         <div className="flex items-center justify-between border-b border-[#eedad2] pb-4">
           <Link
             href={prayer.category ? `/categories/${prayer.category.slug}` : "/dashboard"}
@@ -59,22 +56,17 @@ export default async function PrayerPage(props: {
         </div>
 
         <article className="space-y-10 text-center">
-          <div className="space-y-4">
-            <div className="flex items-center justify-center space-x-2 text-[#d4907a] text-[10px] font-bold uppercase tracking-[0.2em]">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>{prayer.situation?.name ?? prayer.category.name}</span>
-            </div>
-            <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#1f3a28]">
+          <div className="space-y-3">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">
+              {prayer.situation?.name ?? prayer.category.name}
+            </span>
+            <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#1f3a28] tracking-tight">
               {prayer.title}
             </h1>
           </div>
 
-          <div className="font-serif text-base sm:text-lg text-[#1f3a28] leading-[1.8] space-y-8">
-            {paragraphs.map((para, idx) => (
-              <p key={idx} className="max-w-xl mx-auto">
-                {para}
-              </p>
-            ))}
+          <div className="font-serif text-base sm:text-lg text-[#1f3a28] leading-[2] max-w-xl mx-auto whitespace-pre-wrap text-center">
+            {prayer.body}
           </div>
         </article>
       </div>
