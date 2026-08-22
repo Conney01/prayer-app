@@ -24,14 +24,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const user = await db.user.findUnique({ where: { email } });
 
-        if (!user || !user.password) {
+        if (!user?.password) {
           return null;
         }
 
         const isValid = await compare(password, user.password);
         if (!isValid) return null;
 
-        // Return the full user object to satisfy NextAuth & Prisma types
         return user;
       },
     }),
