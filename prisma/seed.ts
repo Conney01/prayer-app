@@ -2,35 +2,28 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-const categories = [
-  { slug: "daily-prayers", name: "Daily Prayers", icon: "sun", sortOrder: 1 },
-  { slug: "forgiveness-repentance", name: "Forgiveness, Repentance & Reconciliation", icon: "heart-handshake", sortOrder: 2 },
-  { slug: "difficult-emotions", name: "Difficult Emotions", icon: "cloud-rain", sortOrder: 3 },
-  { slug: "anxiety-worry-stress", name: "Anxiety, Worry & Stress", icon: "wind", sortOrder: 4 },
-  { slug: "school-studies-exams", name: "School, Studies & Exams", icon: "graduation-cap", sortOrder: 5 },
-  { slug: "work-career-business", name: "Work, Career & Business", icon: "briefcase", sortOrder: 6 },
-  { slug: "financial-difficulties", name: "Financial Difficulties", icon: "coins", sortOrder: 7 },
-  { slug: "family", name: "Family", icon: "users", sortOrder: 8 },
-  { slug: "love-relationships", name: "Love & Relationships", icon: "heart", sortOrder: 9 },
-  { slug: "health-healing", name: "Health & Healing", icon: "activity", sortOrder: 10 },
-  { slug: "protection-safety", name: "Protection & Safety", icon: "shield", sortOrder: 11 },
-  { slug: "guidance-decisions", name: "Guidance & Important Decisions", icon: "compass", sortOrder: 12 },
-  { slug: "difficult-times-hardships", name: "Difficult Times & Hardships", icon: "anchor", sortOrder: 13 },
-  { slug: "gratitude-thanksgiving", name: "Gratitude & Thanksgiving", icon: "sparkles", sortOrder: 14 },
-  { slug: "special-occasions", name: "Special Occasions", icon: "calendar", sortOrder: 15 },
-  { slug: "spiritual-growth", name: "Spiritual Growth", icon: "feather", sortOrder: 16 },
+const defaultCategories = [
+  { name: "Forgiveness, Repentance & Reconciliation", slug: "forgiveness-repentance", sortOrder: 1 },
+  { name: "School, Studies & Exams", slug: "school-studies-exams", sortOrder: 2 },
+  { name: "Work, Career & Business", slug: "work-career-business", sortOrder: 3 },
+  { name: "Financial Difficulties", slug: "financial-difficulties", sortOrder: 4 },
+  { name: "Family", slug: "family", sortOrder: 5 },
+  { name: "Love & Relationships", slug: "love-relationships", sortOrder: 6 },
+  { name: "Health & Healing", slug: "health-healing", sortOrder: 7 },
+  { name: "Protection & Safety", slug: "protection-safety", sortOrder: 8 },
+  { name: "Guidance & Important Decisions", slug: "guidance-decisions", sortOrder: 9 },
+  { name: "Difficult Times & Hardships", slug: "difficult-times-hardships", sortOrder: 10 },
+  { name: "Gratitude & Thanksgiving", slug: "gratitude-thanksgiving", sortOrder: 11 },
 ];
 
 async function main() {
-  console.log("Seeding categories...");
-  for (const cat of categories) {
+  for (const cat of defaultCategories) {
     await prisma.category.upsert({
       where: { slug: cat.slug },
-      update: { name: cat.name, icon: cat.icon, sortOrder: cat.sortOrder },
-      create: cat,
+      update: { name: cat.name, sortOrder: cat.sortOrder },
+      create: { name: cat.name, slug: cat.slug, sortOrder: cat.sortOrder },
     });
   }
-  console.log("âœ“ Categories seeded successfully.");
 }
 
 main()

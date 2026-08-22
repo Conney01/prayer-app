@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "~/server/db";
-import { ArrowLeft, BookOpen, ChevronDown } from "lucide-react";
-import { getSituationsForCategory } from "~/lib/situations";
+import { ArrowLeft, BookOpen } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -13,9 +12,17 @@ export default async function CategoryPage(props: {
   const category = await db.category.findUnique({
     where: { slug: params.slug },
     include: {
+      situations: {
+        include: {
+          prayers: {
+            where: { isPublished: true },
+            orderBy: { createdAt: "asc" },
+          },
+        },
+        orderBy: { sortOrder: "asc" },
+      },
       prayers: {
         where: { isPublished: true },
-        orderBy: { createdAt: "asc" },
       },
     },
   });
@@ -23,13 +30,6 @@ export default async function CategoryPage(props: {
   if (!category) {
     notFound();
   }
-
-  const defaultSituations = getSituationsForCategory(category);
-  const dbSituations = category.prayers
-    .map((p) => p.title.split(/ [-—] /)[0]?.trim())
-    .filter(Boolean) as string[];
-
-  const situationsList = Array.from(new Set([...defaultSituations, ...dbSituations]));
 
   return (
     <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] py-8 px-4 sm:px-8">
@@ -55,20 +55,17 @@ export default async function CategoryPage(props: {
             {category.name}
           </h1>
           <p className="text-xs text-[#6b635e] mt-2">
-            {situationsList.length} Situations • {category.prayers.length} Prayers Available
+            {category.situations.length} Situations • {category.prayers.length} Prayers Available
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {situationsList.map((situationName) => {
-            const prayersForSituation = category.prayers.filter((p) => {
-              const base = p.title.split(/ [-—] /)[0]?.trim();
-              return base === situationName;
-            });
+          {category.situations.map((situation) => {
+            const prayersForSituation = situation.prayers;
 
             return (
               <div
-                key={situationName}
+                key={situation.id}
                 className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 shadow-2xs hover:bg-white transition space-y-4"
               >
                 <div className="flex items-start justify-between">
@@ -76,7 +73,7 @@ export default async function CategoryPage(props: {
                     <BookOpen className="h-5 w-5 text-[#2d5a3d] mt-0.5 flex-shrink-0" />
                     <div>
                       <h3 className="font-serif text-base font-bold text-[#1f3a28]">
-                        {situationName}
+                        {situation.name}
                       </h3>
                       <span className="text-[11px] font-medium text-[#d4907a] uppercase tracking-wider">
                         {prayersForSituation.length} {prayersForSituation.length === 1 ? "Prayer" : "Prayers"}
