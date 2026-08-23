@@ -24,12 +24,9 @@ export default function SavedPrayersPage() {
           <p className="text-sm text-emerald-800/80 max-w-md mx-auto mb-6">
             Prayers, devotions, and scripture anchors you bookmark will appear here for easy reflection and stillness.
           </p>
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center justify-center rounded-xl bg-[#2d5a3d] text-white px-6 py-3 text-xs font-semibold hover:bg-[#1f3a28] transition shadow-sm"
-          >
-            Explore Daily Prayers
-          </Link>
+          <div className="inline-flex items-center justify-center rounded-xl bg-[#fbf5f2] text-[#2d5a3d] px-6 py-3 text-xs font-semibold border border-emerald-900/10">
+            Empty — add your favorite prayers there
+          </div>
         </div>
       </main>
 
