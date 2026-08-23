@@ -96,7 +96,7 @@ export default async function DashboardPage() {
             </h1>
           </div>
           
-          <div className="flex items-center flex-wrap gap-2">
+          <div className="hidden md:flex items-center flex-wrap gap-2">
             {userRole === "ADMIN" && (
               <Link
                 href="/admin"
@@ -274,7 +274,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Global Footer */}
-      <Footer />
+      <div className="hidden md:block"><Footer /></div>
     
       
 
