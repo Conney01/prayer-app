@@ -275,6 +275,19 @@ export default async function DashboardPage() {
 
       {/* Global Footer */}
       <Footer />
-    </div>
+    
+      {/* Mobile Bottom Navigation Bar (Visible only on mobile) */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-emerald-900/10 bg-[#fbf5f2]/95 py-3 backdrop-blur-md md:hidden shadow-lg">
+        <a href="/dashboard" className="flex flex-col items-center text-xs font-medium text-emerald-900">
+          ?? <span className="text-[10px]">Home</span>
+        </a>
+        <a href="/dashboard" className="flex flex-col items-center text-xs font-medium text-emerald-800/80 hover:text-emerald-900">
+          ?? <span className="text-[10px]">Saved</span>
+        </a>
+        <a href="/support" className="flex flex-col items-center text-xs font-medium text-emerald-800/80 hover:text-emerald-900">
+          ?? <span className="text-[10px]">Support</span>
+        </a>
+      </nav>
+</div>
   );
 }
