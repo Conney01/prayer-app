@@ -1,7 +1,7 @@
 ﻿import Link from "next/link";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { Flame, Sparkles, BookOpen, ArrowRight, Heart, Bookmark, Shield, Sun } from "lucide-react";
+import { Sparkles, BookOpen, ArrowRight, Heart, Bookmark, Shield, Sun } from "lucide-react";
 import { getUserStreak } from "~/lib/streak";
 import { completePrayerAction } from "~/app/actions/prayer-interactions";
 import { Footer } from "~/components/footer";
@@ -132,7 +132,7 @@ export default async function DashboardPage() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div className="flex items-center space-x-3">
               <div className="rounded-full bg-[#fdf0ec] p-2 border border-[#eedad2]">
-                <Flame className="h-5 w-5 text-[#d4907a]" />
+                <span className="text-xl animate-pulse inline-block" title="Growing in Grace">🌱</span>
               </div>
               <div>
                 <h3 className="font-serif text-lg font-bold text-[#1f3a28]">
