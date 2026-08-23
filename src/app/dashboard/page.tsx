@@ -1,112 +1,17 @@
-﻿import Link from "next/link";
-import { auth } from "~/server/auth";
-import { db } from "~/server/db";
-import { Flame, Sparkles, BookOpen, ArrowRight, Heart, Bookmark, Shield, Sun } from "lucide-react";
-import { getUserStreak } from "~/lib/streak";
-import { completePrayerAction } from "~/app/actions/prayer-interactions";
-import { Footer } from "~/components/footer";
-import { LogoutButton } from "~/components/logout-btn";
+﻿import Link from 'next/link';
+import { Bookmark, MessageSquare, Sparkles, Wrench, Lock, CheckCircle2, LogOut } from 'lucide-react';
 
-export const dynamic = "force-dynamic";
-
-export default async function DashboardPage() {
-  const session = await auth();
-  const userId = session?.user?.id;
-  const userRole = session?.user?.role;
-
-  if (userId) {
-    try {
-      await completePrayerAction();
-    } catch {
-      // Graceful fallback
-    }
-  }
-
-  const streak = userId ? await getUserStreak(userId) : { streakCount: 1 };
-  const streakCount = Math.max(1, streak?.streakCount ?? 1);
-
-  const dailyReflections = [
-    {
-      verse: "Rejoice always, pray continually, give thanks in all circumstances; for this is God's will for you in Christ Jesus.",
-      reference: "1 Thessalonians 5:16-18",
-      reflection: "In moments of quiet stillness, God invites us to release our heavy burdens. True prayer is not just about asking, but about resting in His constant presence throughout your day.",
-    },
-    {
-      verse: "Cast all your anxiety on him because he cares for you.",
-      reference: "1 Peter 5:7",
-      reflection: "Whatever weighs on your mind right nowâ€”uncertainties, pressures, or fearsâ€”take a deep breath and gently place them in God's capable hands.",
-    },
-    {
-      verse: "The Lord is close to the brokenhearted and saves those who are crushed in spirit.",
-      reference: "Psalm 34:18",
-      reflection: "Your vulnerability is never hidden from God. He draws nearest precisely when your heart feels most tender and weary.",
-    },
-  ];
-
-  const todayIndex = new Date().getDate() % dailyReflections.length;
-  const todayAnchor = dailyReflections[todayIndex] ?? dailyReflections[0];
-
-  const today = new Date();
-  const dayOfWeek = today.getDay();
-  
-  const sundayDate = new Date(today);
-  sundayDate.setDate(today.getDate() - dayOfWeek);
-
-  const days = Array.from({ length: 7 }).map((_, index) => {
-    const d = new Date(sundayDate);
-    d.setDate(sundayDate.getDate() + index);
-    const labels = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-    const isToday = d.toDateString() === today.toDateString();
-
-    return {
-      label: labels[index],
-      dateNum: d.getDate(),
-      isToday,
-    };
-  });
-
-  const categories = await db.category.findMany({
-    include: {
-      situations: {
-        include: {
-          prayers: {
-            where: { isPublished: true },
-          },
-        },
-      },
-      prayers: {
-        where: { isPublished: true },
-      },
-    },
-    orderBy: { sortOrder: "asc" },
-  });
-
+export default function DashboardPage() {
   return (
-    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] flex flex-col justify-between">
-      <div className="py-8 px-4 sm:px-8 max-w-5xl mx-auto w-full space-y-10">
-        
-        {/* Top Header & Action Buttons */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-[#eedad2] pb-6 gap-4">
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">
-              Sanctuary Space
-            </span>
-            <h1 className="font-serif text-3xl font-bold text-[#1f3a28] mt-1">
-              Welcome back, {session?.user?.name ?? "Friend"}
-            </h1>
+    <div className="min-h-screen bg-[#fbf5f2] text-[#1f3a28] pb-28 md:pb-12">
+      {/* Top Header Bar */}
+      <header className="border-b border-emerald-900/10 bg-white/50 backdrop-blur-md sticky top-0 z-40">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#d4907a]">Sanctuary Space</span>
           </div>
           
           <div className="hidden md:flex items-center flex-wrap gap-2">
-            {userRole === "ADMIN" && (
-              <Link
-                href="/admin"
-                className="inline-flex items-center space-x-1.5 rounded-xl border border-[#2d5a3d] bg-[#2d5a3d] text-white px-3.5 py-2 text-xs font-semibold hover:bg-[#1f3a28] transition shadow-2xs"
-              >
-                <Shield className="h-3.5 w-3.5" />
-                <span>Admin Panel</span>
-              </Link>
-            )}
-
             <Link
               href="/dashboard/saved"
               className="inline-flex items-center space-x-1.5 rounded-xl border border-[#eedad2] bg-white px-3.5 py-2 text-xs font-semibold text-[#1f3a28] hover:bg-[#faf3f0] transition shadow-2xs"
@@ -119,166 +24,183 @@ export default async function DashboardPage() {
               href="/support"
               className="inline-flex items-center space-x-1.5 rounded-xl border border-[#eedad2] bg-white px-3.5 py-2 text-xs font-semibold text-[#1f3a28] hover:bg-[#faf3f0] transition shadow-2xs"
             >
-              <Heart className="h-3.5 w-3.5 text-[#d4907a]" />
+              <MessageSquare className="h-3.5 w-3.5 text-[#d4907a]" />
               <span>Support Hub</span>
             </Link>
 
-            <LogoutButton />
+            <Link
+              href="/login"
+              className="inline-flex items-center space-x-1.5 rounded-xl border border-red-900/20 bg-white px-3.5 py-2 text-xs font-semibold text-red-700 hover:bg-red-50 transition shadow-2xs"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              <span>Logout</span>
+            </Link>
           </div>
         </div>
+      </header>
 
-        {/* 7-Day Streak Calendar Bar (Sun - Sat) */}
-        <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-2xs space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+      {/* Main Content */}
+      <main className="max-w-4xl mx-auto px-4 py-8">
+        
+        {/* Maintenance / Gentle Update Notice */}
+        <div className="bg-[#eedad2]/30 border border-[#eedad2] rounded-3xl p-5 mb-8 flex items-center justify-between shadow-2xs">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-[#eedad2]/60 rounded-2xl flex items-center justify-center text-[#2d5a3d]">
+              <Wrench className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-[#1f3a28]">We&apos;re gently improving your space.</h3>
+              <p className="text-[11px] text-emerald-800/80">Your progress is safe and will be right here when we return.</p>
+            </div>
+          </div>
+          <Link href="/support" className="text-xs font-semibold text-[#2d5a3d] hover:underline whitespace-nowrap ml-4">
+            Learn more
+          </Link>
+        </div>
+
+        {/* Welcome Header */}
+        <div className="mb-8">
+          <h1 className="font-serif text-3xl md:text-4xl font-bold text-[#1f3a28]">
+            Welcome back, Pianella
+          </h1>
+        </div>
+
+        {/* Peaceful Spiritual Growth Journey */}
+        <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-emerald-900/10 mb-8 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-900/5 rounded-bl-full pointer-events-none"></div>
+          <div className="flex items-start justify-between mb-6">
             <div className="flex items-center space-x-3">
-              <div className="rounded-full bg-[#fdf0ec] p-2 border border-[#eedad2]">
-                <Flame className="h-5 w-5 text-[#d4907a]" />
+              <div className="w-12 h-12 bg-[#fbf5f2] border border-emerald-900/10 rounded-2xl flex items-center justify-center text-2xl shadow-2xs">
+                🌱
               </div>
               <div>
-                <h3 className="font-serif text-lg font-bold text-[#1f3a28]">
-                  {streakCount} {streakCount === 1 ? "Day" : "Days"} in Stillness
-                </h3>
-                <p className="text-xs text-[#6b635e]">
-                  Active streak â€¢ Every breath in prayer counts.
-                </p>
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a] block">Current Growth</span>
+                <h2 className="font-serif text-xl font-bold text-[#1f3a28]">Growing in Grace</h2>
               </div>
             </div>
-
-            <span className="rounded-full border border-[#eedad2] bg-white px-4 py-1.5 text-[11px] font-semibold text-[#1f3a28] shadow-2xs">
-              Grace over perfection
+            <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#fbf5f2] text-emerald-900 text-xs font-semibold border border-emerald-900/10">
+              Day 1 • Seed 🌱
             </span>
           </div>
 
-          <div className="grid grid-cols-7 gap-2 pt-2 border-t border-[#eedad2]/60">
-            {days.map((d) => (
-              <div
-                key={d.label}
-                className={`flex flex-col items-center justify-center rounded-2xl p-3 transition ${
-                  d.isToday
-                    ? "border-2 border-[#d4907a] bg-white shadow-xs"
-                    : "border border-[#eedad2]/50 bg-white/50 text-[#6b635e]"
-                }`}
-              >
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6b635e]">
-                  {d.label}
-                </span>
-                <span className={`font-serif text-base font-bold mt-1 ${d.isToday ? "text-[#1f3a28]" : "text-[#6b635e]"}`}>
-                  {d.dateNum}
-                </span>
-                {d.isToday && (
-                  <span className="text-[9px] font-semibold text-[#d4907a] uppercase mt-0.5">
-                    Today
-                  </span>
-                )}
-              </div>
-            ))}
+          <p className="text-xs text-emerald-800/80 mb-6 leading-relaxed">
+            Every quiet step you take matters. Your spiritual journey is safely rooted, and your progress is protected even during maintenance.
+          </p>
+
+          {/* Peaceful Progress Milestones Bar */}
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5 mb-6">
+            <div className="bg-[#fbf5f2] border border-emerald-900/10 rounded-2xl p-3 text-center">
+              <span className="text-lg block mb-1">🌱</span>
+              <span className="text-[10px] font-bold text-[#1f3a28] block">Seed</span>
+              <span className="text-[9px] text-emerald-800/70">Day 1+</span>
+            </div>
+            <div className="bg-white/60 border border-emerald-900/5 rounded-2xl p-3 text-center opacity-70">
+              <span className="text-lg block mb-1">🌿</span>
+              <span className="text-[10px] font-bold text-[#1f3a28] block">Sprout</span>
+              <span className="text-[9px] text-emerald-800/70">Day 3+</span>
+            </div>
+            <div className="bg-white/60 border border-emerald-900/5 rounded-2xl p-3 text-center opacity-70">
+              <span className="text-lg block mb-1">🌿✨</span>
+              <span className="text-[10px] font-bold text-[#1f3a28] block">Young</span>
+              <span className="text-[9px] text-emerald-800/70">Day 7+</span>
+            </div>
+            <div className="bg-white/60 border border-emerald-900/5 rounded-2xl p-3 text-center opacity-70">
+              <span className="text-lg block mb-1">🌷</span>
+              <span className="text-[10px] font-bold text-[#1f3a28] block">Bud</span>
+              <span className="text-[9px] text-emerald-800/70">Day 14+</span>
+            </div>
+            <div className="bg-white/60 border border-emerald-900/5 rounded-2xl p-3 text-center opacity-70">
+              <span className="text-lg block mb-1">🌸</span>
+              <span className="text-[10px] font-bold text-[#1f3a28] block">Flower</span>
+              <span className="text-[9px] text-emerald-800/70">Day 30+</span>
+            </div>
+            <div className="bg-white/60 border border-emerald-900/5 rounded-2xl p-3 text-center opacity-70">
+              <span className="text-lg block mb-1">🌺</span>
+              <span className="text-[10px] font-bold text-[#1f3a28] block">Blossom</span>
+              <span className="text-[9px] text-emerald-800/70">Day 100+</span>
+            </div>
+          </div>
+
+          {/* Weekly Consistency Bar */}
+          <div className="grid grid-cols-7 gap-2 pt-4 border-t border-emerald-900/5">
+            <div className="bg-[#2d5a3d]/10 border border-[#2d5a3d]/20 rounded-2xl p-2.5 text-center">
+              <span className="text-[10px] font-bold text-emerald-900 block">SUN</span>
+              <span className="text-xs font-bold text-emerald-900 block my-1">23</span>
+              <span className="text-[10px] text-emerald-900">✓</span>
+            </div>
+            <div className="bg-[#fbf5f2] border border-emerald-900/10 rounded-2xl p-2.5 text-center opacity-80">
+              <span className="text-[10px] font-bold text-emerald-800/70 block">MON</span>
+              <span className="text-xs font-bold text-emerald-800 block my-1">24</span>
+              <span className="text-[10px] text-emerald-800/50">·</span>
+            </div>
+            <div className="bg-[#fbf5f2] border border-emerald-900/10 rounded-2xl p-2.5 text-center opacity-80">
+              <span className="text-[10px] font-bold text-emerald-800/70 block">TUE</span>
+              <span className="text-xs font-bold text-emerald-800 block my-1">25</span>
+              <span className="text-[10px] text-emerald-800/50">·</span>
+            </div>
+            <div className="bg-[#fbf5f2] border border-emerald-900/10 rounded-2xl p-2.5 text-center opacity-80">
+              <span className="text-[10px] font-bold text-emerald-800/70 block">WED</span>
+              <span className="text-xs font-bold text-emerald-800 block my-1">26</span>
+              <span className="text-[10px] text-emerald-800/50">·</span>
+            </div>
+            <div className="bg-[#fbf5f2] border border-emerald-900/10 rounded-2xl p-2.5 text-center opacity-80">
+              <span className="text-[10px] font-bold text-emerald-800/70 block">THU</span>
+              <span className="text-xs font-bold text-emerald-800 block my-1">27</span>
+              <span className="text-[10px] text-emerald-800/50">·</span>
+            </div>
+            <div className="bg-[#fbf5f2] border border-emerald-900/10 rounded-2xl p-2.5 text-center opacity-80">
+              <span className="text-[10px] font-bold text-emerald-800/70 block">FRI</span>
+              <span className="text-xs font-bold text-emerald-800 block my-1">28</span>
+              <span className="text-[10px] text-emerald-800/50">·</span>
+            </div>
+            <div className="bg-[#fbf5f2] border border-emerald-900/10 rounded-2xl p-2.5 text-center opacity-80">
+              <span className="text-[10px] font-bold text-emerald-800/70 block">SAT</span>
+              <span className="text-xs font-bold text-emerald-800 block my-1">29</span>
+              <span className="text-[10px] text-emerald-800/50">·</span>
+            </div>
           </div>
         </div>
 
-        {/* Sacred Anchor & Reflection */}
-        <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-8 shadow-2xs space-y-6">
-          <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-4">
-            <div className="flex items-center space-x-2 text-[#d4907a] text-xs font-semibold uppercase tracking-wider">
-              <Sparkles className="h-4 w-4" />
-              <span>Sacred Anchor & Reflection</span>
+        {/* Daily Anchor Card */}
+        <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-emerald-900/10 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2">
+              <Sparkles className="h-4 w-4 text-[#d4907a]" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">Daily Anchor & Reflection</span>
             </div>
-            <span className="text-xs font-serif italic text-[#6b635e]">
-              Daily Meditation
-            </span>
+            <span className="text-xs text-emerald-800/70">Daily Meditation</span>
           </div>
 
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-[#eedad2] bg-white p-6 shadow-2xs space-y-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#6b635e]">
-                Scripture Anchor
-              </span>
-              <blockquote className="font-serif text-base sm:text-lg text-[#1f3a28] italic leading-relaxed">
-                &ldquo;{todayAnchor?.verse}&rdquo;
-              </blockquote>
-              <p className="text-xs text-[#6b635e] font-serif font-semibold pt-1">â€” {todayAnchor?.reference}</p>
-            </div>
-
-            <div className="space-y-2 pt-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#d4907a]">
-                Today&apos;s Reflection
-              </span>
-              <p className="font-serif text-sm sm:text-base text-[#1f3a28] leading-relaxed">
-                {todayAnchor?.reflection}
-              </p>
+          <div className="bg-[#fbf5f2]/50 border border-emerald-900/10 rounded-2xl p-6">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#2d5a3d] block mb-2">Scripture Anchor</span>
+            <p className="font-serif text-lg text-[#1f3a28] italic mb-3">
+              &ldquo;The Lord is close to the brokenhearted and saves those who are crushed in spirit.&rdquo;
+            </p>
+            <div className="flex items-center justify-between text-xs text-emerald-800/80">
+              <span>Psalm 34:18</span>
+              <button className="text-[#d4907a] hover:text-[#1f3a28] transition">❤️</button>
             </div>
           </div>
         </div>
 
-        {/* Prayer Collections Section */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
+        {/* Permanent Protection Notice Card */}
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-emerald-900/10 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-[#fbf5f2] rounded-2xl flex items-center justify-center text-[#2d5a3d]">
+              <Lock className="h-5 w-5" />
+            </div>
             <div>
-              <h2 className="font-serif text-2xl font-bold text-[#1f3a28]">
-                Prayer Collections ({categories.length})
-              </h2>
-              <p className="text-xs text-[#6b635e] mt-1">
-                Explore devotions curated for life&apos;s moments
-              </p>
+              <h3 className="text-xs font-bold text-[#1f3a28]">Your peace, safely saved.</h3>
+              <p className="text-[11px] text-emerald-800/80">Your moments, reflections, and growth are securely stored in the database. You&apos;ll always pick up right where you left off.</p>
             </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {categories.map((category, idx) => {
-              const situationCount = category.situations.length;
-              const prayerCount = category.prayers.length;
-              const collectionNum = String(idx + 1).padStart(2, "0");
-              const isDailyPrayers = category.name.toLowerCase().includes("daily prayer");
-
-              return (
-                <div
-                  key={category.id}
-                  className={`rounded-3xl p-8 transition space-y-6 flex flex-col justify-between shadow-2xs ${
-                    isDailyPrayers
-                      ? "border-2 border-[#d4907a] bg-white shadow-sm ring-4 ring-[#d4907a]/10"
-                      : "border border-[#eedad2] bg-[#faf3f0] hover:bg-white"
-                  }`}
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isDailyPrayers ? "text-[#d4907a] font-extrabold" : "text-[#d4907a]"}`}>
-                        {isDailyPrayers ? "â˜… Featured Daily Routine" : `Collection ${collectionNum}`}
-                      </span>
-                      <span className="text-xs text-[#6b635e] font-medium">
-                        {situationCount} {situationCount === 1 ? "Situation" : "Situations"} â€¢ {prayerCount} {prayerCount === 1 ? "Prayer" : "Prayers"}
-                      </span>
-                    </div>
-                    <h3 className="font-serif text-xl font-bold text-[#1f3a28] flex items-center space-x-2">
-                      {isDailyPrayers && <Sun className="h-5 w-5 text-[#d4907a] inline mr-1" />}
-                      <span>{category.name}</span>
-                    </h3>
-                  </div>
-
-                  <div className="pt-2 border-t border-[#eedad2]/60 flex items-center justify-between">
-                    <Link
-                      href={`/categories/${category.slug}`}
-                      className={`inline-flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider transition group ${
-                        isDailyPrayers ? "text-[#d4907a] hover:text-[#1f3a28]" : "text-[#1f3a28] hover:text-[#d4907a]"
-                      }`}
-                    >
-                      <span>{isDailyPrayers ? "Begin Daily Prayer" : "Enter Space"}</span>
-                      <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
-                    </Link>
-                    {isDailyPrayers ? <Sun className="h-4 w-4 text-[#d4907a]" /> : <BookOpen className="h-4 w-4 text-[#6b635e]" />}
-                  </div>
-                </div>
-              );
-            })}
+          <div className="hidden sm:flex items-center space-x-1.5 text-xs font-semibold text-emerald-900 bg-[#fbf5f2] px-3 py-1.5 rounded-xl border border-emerald-900/10">
+            <CheckCircle2 className="h-3.5 w-3.5 text-[#2d5a3d]" />
+            <span>Protected</span>
           </div>
         </div>
+      </main>
 
-      </div>
-
-      {/* Global Footer */}
-      <div className="hidden md:block"><Footer /></div>
-    
-      
-
-      
       {/* Mobile Bottom Navigation Bar (Optimized for Instant Touch Response) */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-emerald-900/10 bg-[#fbf5f2]/98 py-1 backdrop-blur-md md:hidden shadow-2xl touch-manipulation">
         <a href="/dashboard" className="flex-1 py-3 flex flex-col items-center justify-center text-[11px] font-medium text-emerald-900 active:scale-95 transition-transform duration-100">
@@ -298,6 +220,6 @@ export default async function DashboardPage() {
           Logout
         </a>
       </nav>
-</div>
+    </div>
   );
 }
