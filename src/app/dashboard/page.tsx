@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { Flame, Sparkles, BookOpen, ArrowRight, Heart, Bookmark, Shield, Sun } from "lucide-react";
@@ -34,7 +34,7 @@ export default async function DashboardPage() {
     {
       verse: "Cast all your anxiety on him because he cares for you.",
       reference: "1 Peter 5:7",
-      reflection: "Whatever weighs on your mind right now—uncertainties, pressures, or fears—take a deep breath and gently place them in God's capable hands.",
+      reflection: "Whatever weighs on your mind right nowâ€”uncertainties, pressures, or fearsâ€”take a deep breath and gently place them in God's capable hands.",
     },
     {
       verse: "The Lord is close to the brokenhearted and saves those who are crushed in spirit.",
@@ -139,7 +139,7 @@ export default async function DashboardPage() {
                   {streakCount} {streakCount === 1 ? "Day" : "Days"} in Stillness
                 </h3>
                 <p className="text-xs text-[#6b635e]">
-                  Active streak • Every breath in prayer counts.
+                  Active streak â€¢ Every breath in prayer counts.
                 </p>
               </div>
             </div>
@@ -195,7 +195,7 @@ export default async function DashboardPage() {
               <blockquote className="font-serif text-base sm:text-lg text-[#1f3a28] italic leading-relaxed">
                 &ldquo;{todayAnchor?.verse}&rdquo;
               </blockquote>
-              <p className="text-xs text-[#6b635e] font-serif font-semibold pt-1">— {todayAnchor?.reference}</p>
+              <p className="text-xs text-[#6b635e] font-serif font-semibold pt-1">â€” {todayAnchor?.reference}</p>
             </div>
 
             <div className="space-y-2 pt-2">
@@ -241,10 +241,10 @@ export default async function DashboardPage() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isDailyPrayers ? "text-[#d4907a] font-extrabold" : "text-[#d4907a]"}`}>
-                        {isDailyPrayers ? "★ Featured Daily Routine" : `Collection ${collectionNum}`}
+                        {isDailyPrayers ? "â˜… Featured Daily Routine" : `Collection ${collectionNum}`}
                       </span>
                       <span className="text-xs text-[#6b635e] font-medium">
-                        {situationCount} {situationCount === 1 ? "Situation" : "Situations"} • {prayerCount} {prayerCount === 1 ? "Prayer" : "Prayers"}
+                        {situationCount} {situationCount === 1 ? "Situation" : "Situations"} â€¢ {prayerCount} {prayerCount === 1 ? "Prayer" : "Prayers"}
                       </span>
                     </div>
                     <h3 className="font-serif text-xl font-bold text-[#1f3a28] flex items-center space-x-2">
@@ -276,16 +276,25 @@ export default async function DashboardPage() {
       {/* Global Footer */}
       <Footer />
     
+      
+
       {/* Mobile Bottom Navigation Bar (Visible only on mobile) */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-emerald-900/10 bg-[#fbf5f2]/95 py-3 backdrop-blur-md md:hidden shadow-lg">
-        <a href="/dashboard" className="flex flex-col items-center text-xs font-medium text-emerald-900">
-          ?? <span className="text-[10px]">Home</span>
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-emerald-900/10 bg-[#fbf5f2]/95 py-2.5 backdrop-blur-md md:hidden shadow-lg">
+        <a href="/dashboard" className="flex flex-col items-center text-[11px] font-medium text-emerald-900">
+          <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          Home
         </a>
-        <a href="/dashboard" className="flex flex-col items-center text-xs font-medium text-emerald-800/80 hover:text-emerald-900">
-          ?? <span className="text-[10px]">Saved</span>
+        <a href="#saved" className="flex flex-col items-center text-[11px] font-medium text-emerald-800/80 hover:text-emerald-900">
+          <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+          Saved
         </a>
-        <a href="/support" className="flex flex-col items-center text-xs font-medium text-emerald-800/80 hover:text-emerald-900">
-          ?? <span className="text-[10px]">Support</span>
+        <a href="/support" className="flex flex-col items-center text-[11px] font-medium text-emerald-800/80 hover:text-emerald-900">
+          <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          Support
+        </a>
+        <a href="/login" className="flex flex-col items-center text-[11px] font-medium text-red-700/80 hover:text-red-900">
+          <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          Logout
         </a>
       </nav>
 </div>
