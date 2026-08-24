@@ -30,7 +30,7 @@ export async function sendWelcomeEmail(to: string, name?: string | null) {
   const html = `
     <div style="font-family: Georgia, serif; background-color: #fdf0ec; color: #1f3a28; padding: 40px; border-radius: 24px; max-width: 600px; margin: 0 auto;">
       <div style="text-align: center; margin-bottom: 24px;">
-        <img src="https://mysanctuary.live/icon.jpg" alt="Sanctuary" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid #eedad2; box-shadow: 0 4px 12px rgba(31,58,40,0.1);" />
+        <img src="https://mysanctuary.live/logo.jpg" alt="Sanctuary" style="width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid #eedad2; box-shadow: 0 4px 12px rgba(31,58,40,0.1);" />
         <br />
         <span style="font-size: 11px; font-weight: bold; letter-spacing: 0.2em; text-transform: uppercase; color: #d4907a; display: inline-block; margin-top: 12px;">Sanctuary &bull; Grace & Stillness</span>
       </div>
