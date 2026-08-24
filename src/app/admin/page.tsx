@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { ShieldCheck, ArrowLeft, MessageSquare, Mail, Calendar, BookOpen, Users, DollarSign, Layers } from "lucide-react";
+import { ShieldCheck, ArrowLeft, MessageSquare, Mail, Calendar, BookOpen, Users, Layers } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -13,8 +13,8 @@ export default async function AdminPage() {
     redirect("/dashboard");
   }
 
-  // Fetch all management data in parallel
-  const [prayers, categories, feedbacks, donations, userCount] = await Promise.all([
+  // Fetch management data in parallel (excluding donations)
+  const [prayers, categories, feedbacks, userCount] = await Promise.all([
     db.prayer.findMany({
       include: { category: true, situation: true },
       orderBy: { createdAt: "desc" },
@@ -26,15 +26,8 @@ export default async function AdminPage() {
     db.feedback.findMany({
       orderBy: { createdAt: "desc" },
     }),
-    db.donation.findMany({
-      orderBy: { createdAt: "desc" },
-    }),
     db.user.count(),
   ]);
-
-  const totalDonationsAmount = donations
-    .filter((d) => d.status === "COMPLETED")
-    .reduce((acc, curr) => acc + curr.amount, 0);
 
   return (
     <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] py-8 px-4 sm:px-8">
@@ -71,8 +64,8 @@ export default async function AdminPage() {
           </div>
         </header>
 
-        {/* Overview Stat Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Overview Stat Cards (3 Cards) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-5 shadow-2xs space-y-1">
             <div className="flex items-center justify-between text-[#6b635e]">
               <span className="text-xs font-medium uppercase tracking-wider">Prayers</span>
@@ -99,15 +92,6 @@ export default async function AdminPage() {
             <p className="font-serif text-2xl font-bold text-[#1f3a28]">{feedbacks.length}</p>
             <span className="text-[10px] text-[#6b635e]">Support submissions</span>
           </div>
-
-          <div className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-5 shadow-2xs space-y-1">
-            <div className="flex items-center justify-between text-[#6b635e]">
-              <span className="text-xs font-medium uppercase tracking-wider">Support Pool</span>
-              <DollarSign className="h-4 w-4 text-[#2d5a3d]" />
-            </div>
-            <p className="font-serif text-2xl font-bold text-[#1f3a28]">Ksh {totalDonationsAmount.toLocaleString()}</p>
-            <span className="text-[10px] text-[#6b635e]">{donations.length} total contributions</span>
-          </div>
         </div>
 
         {/* Categories Breakdown */}
@@ -128,51 +112,6 @@ export default async function AdminPage() {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Donations & Support Tracking */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-2">
-            <div className="flex items-center space-x-2">
-              <DollarSign className="h-5 w-5 text-[#2d5a3d]" />
-              <h2 className="font-serif text-lg font-bold text-[#1f3a28]">
-                Contributions &amp; M-Pesa Support ({donations.length})
-              </h2>
-            </div>
-            <span className="text-xs text-[#6b635e]">Financial Ledger</span>
-          </div>
-
-          {donations.length === 0 ? (
-            <div className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 text-center text-xs text-[#6b635e]">
-              No contributions recorded yet.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {donations.map((don) => (
-                <div key={don.id} className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-4 shadow-2xs space-y-2">
-                  <div className="flex items-center justify-between text-xs border-b border-[#eedad2]/50 pb-2">
-                    <span className="font-bold text-[#1f3a28]">
-                      {don.isAnonymous ? "Anonymous Seeker" : (don.donorName ?? don.phoneNumber)}
-                    </span>
-                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                      don.status === "COMPLETED" ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
-                    }`}>
-                      {don.status}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs text-[#6b635e]">
-                    <span>Amount: <strong className="text-[#1f3a28]">Ksh {don.amount}</strong></span>
-                    <span>{new Date(don.createdAt).toLocaleDateString()}</span>
-                  </div>
-                  {don.mpesaReceiptNumber && (
-                    <div className="text-[10px] text-[#2d5a3d] font-mono">
-                      Receipt: {don.mpesaReceiptNumber}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* User Feedback & Reviews Section */}
