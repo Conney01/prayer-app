@@ -91,7 +91,8 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center flex-wrap gap-2">
+          {/* Hidden on mobile, visible on desktop/PC */}
+          <div className="hidden sm:flex items-center flex-wrap gap-2">
             {userRole === "ADMIN" && (
               <Link
                 href="/admin"
@@ -125,9 +126,7 @@ export default async function DashboardPage() {
               <span>Support</span>
             </Link>
 
-            <div className="hidden md:block">
-              <LogoutButton />
-            </div>
+            <LogoutButton />
           </div>
         </div>
 
