@@ -11,12 +11,12 @@ export const revalidate = 0;
 
 export default async function ProfilePage() {
   const session = await auth();
-  if (!session?.user?.email) {
+  if (!session?.user?.id) {
     redirect("/login");
   }
 
   const user = await db.user.findUnique({
-    where: { email: session.user.email },
+    where: { id: session.user.id },
     include: {
       savedPrayers: true,
     },
