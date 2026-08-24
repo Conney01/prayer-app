@@ -42,6 +42,23 @@ export default async function DashboardPage() {
   const todayIndex = new Date().getDate() % dailyReflections.length;
   const todayAnchor = dailyReflections[todayIndex] ?? dailyReflections[0];
 
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const sundayDate = new Date(today);
+  sundayDate.setDate(today.getDate() - dayOfWeek);
+
+  const days = Array.from({ length: 7 }).map((_, index) => {
+    const d = new Date(sundayDate);
+    d.setDate(sundayDate.getDate() + index);
+    const labels = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    const isToday = d.toDateString() === today.toDateString();
+    return {
+      label: labels[index],
+      dateNum: d.getDate(),
+      isToday,
+    };
+  });
+
   const categories = await db.category.findMany({
     include: {
       situations: {
@@ -132,6 +149,53 @@ export default async function DashboardPage() {
             </div>
           );
         })()}
+
+        {/* 7-Day Calendar Bar (Sun - Sat) Restored */}
+        <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-2xs space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="rounded-full bg-[#fdf0ec] p-2 border border-[#eedad2]">
+                <span className="text-xl inline-block" title="Weekly Rhythm">📅</span>
+              </div>
+              <div>
+                <h3 className="font-serif text-base font-bold text-[#1f3a28]">
+                  Weekly Rhythm
+                </h3>
+                <p className="text-xs text-[#6b635e]">
+                  Walking in grace through every day of the week.
+                </p>
+              </div>
+            </div>
+            <span className="rounded-full border border-[#eedad2] bg-white px-4 py-1.5 text-[11px] font-semibold text-[#1f3a28] shadow-2xs">
+              Grace over perfection
+            </span>
+          </div>
+
+          <div className="grid grid-cols-7 gap-2 pt-2 border-t border-[#eedad2]/60">
+            {days.map((d) => (
+              <div
+                key={d.label}
+                className={`flex flex-col items-center justify-center rounded-2xl p-3 transition ${
+                  d.isToday
+                    ? "border-2 border-[#d4907a] bg-white shadow-xs"
+                    : "border border-[#eedad2]/50 bg-white/50 text-[#6b635e]"
+                }`}
+              >
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6b635e]">
+                  {d.label}
+                </span>
+                <span className={`font-serif text-base font-bold mt-1 ${d.isToday ? "text-[#1f3a28]" : "text-[#6b635e]"}`}>
+                  {d.dateNum}
+                </span>
+                {d.isToday && (
+                  <span className="text-[9px] font-semibold text-[#d4907a] uppercase mt-0.5">
+                    Today
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* Sacred Anchor & Reflection */}
         <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-8 shadow-2xs space-y-6">
