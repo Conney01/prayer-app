@@ -2,7 +2,6 @@
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { Sparkles, BookOpen, ArrowRight, Heart, Bookmark, Shield, Sun } from "lucide-react";
-import { getUserStreak } from "~/lib/streak";
 import { completePrayerAction } from "~/app/actions/prayer-interactions";
 import { Footer } from "~/components/footer";
 import { LogoutButton } from "~/components/logout-btn";
@@ -21,9 +20,6 @@ export default async function DashboardPage() {
       // Graceful fallback
     }
   }
-
-  const streak = userId ? await getUserStreak(userId) : { streakCount: 1 };
-  const streakCount = Math.max(1, streak?.streakCount ?? 1);
 
   const dailyReflections = [
     {
@@ -45,23 +41,6 @@ export default async function DashboardPage() {
 
   const todayIndex = new Date().getDate() % dailyReflections.length;
   const todayAnchor = dailyReflections[todayIndex] ?? dailyReflections[0];
-
-  const today = new Date();
-  const dayOfWeek = today.getDay();
-  const sundayDate = new Date(today);
-  sundayDate.setDate(today.getDate() - dayOfWeek);
-
-  const days = Array.from({ length: 7 }).map((_, index) => {
-    const d = new Date(sundayDate);
-    d.setDate(sundayDate.getDate() + index);
-    const labels = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-    const isToday = d.toDateString() === today.toDateString();
-    return {
-      label: labels[index],
-      dateNum: d.getDate(),
-      isToday,
-    };
-  });
 
   const categories = await db.category.findMany({
     include: {
@@ -125,53 +104,34 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* 7-Day Streak Calendar Bar (Sun - Sat) */}
-        <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-2xs space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-            <div className="flex items-center space-x-3">
-              <div className="rounded-full bg-[#fdf0ec] p-2 border border-[#eedad2]">
-                <span className="text-xl animate-pulse inline-block" title="Growing in Grace">🌱</span>
-              </div>
-              <div>
-                <h3 className="font-serif text-lg font-bold text-[#1f3a28]">
-                  {streakCount} {streakCount === 1 ? "Day" : "Days"} in Stillness
+        {/* Daily Rotating Prayer Message Banner */}
+        {(() => {
+          const messages = [
+            "A quiet moment to pause, pray, and be present with God.",
+            "Slow down. Breathe. Make room for God.",
+            "Step away from the noise and spend a moment with God.",
+            "Whatever you're carrying today, bring it into God's presence.",
+            "There is no perfect way to come to God. Just come.",
+            "Leave the noise behind and be present with Him.",
+            "A prayer for whatever your heart is carrying today."
+          ];
+          const todayMsg = messages[new Date().getDate() % messages.length];
+          return (
+            <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-2xs space-y-4 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div className="space-y-3">
+                <h3 className="font-serif text-xl sm:text-2xl font-bold text-[#1f3a28] italic leading-relaxed">
+                  &ldquo;{todayMsg}&rdquo;
                 </h3>
                 <p className="text-xs text-[#6b635e]">
-                  Active streak • Every breath in prayer counts.
+                  Grace over perfection • Every breath in prayer counts.
                 </p>
               </div>
-            </div>
-
-            <span className="rounded-full border border-[#eedad2] bg-white px-4 py-1.5 text-[11px] font-semibold text-[#1f3a28] shadow-2xs">
-              Grace over perfection
-            </span>
-          </div>
-
-          <div className="grid grid-cols-7 gap-2 pt-2 border-t border-[#eedad2]/60">
-            {days.map((d) => (
-              <div
-                key={d.label}
-                className={`flex flex-col items-center justify-center rounded-2xl p-3 transition ${
-                  d.isToday
-                    ? "border-2 border-[#d4907a] bg-white shadow-xs"
-                    : "border border-[#eedad2]/50 bg-white/50 text-[#6b635e]"
-                }`}
-              >
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6b635e]">
-                  {d.label}
-                </span>
-                <span className={`font-serif text-base font-bold mt-1 ${d.isToday ? "text-[#1f3a28]" : "text-[#6b635e]"}`}>
-                  {d.dateNum}
-                </span>
-                {d.isToday && (
-                  <span className="text-[9px] font-semibold text-[#d4907a] uppercase mt-0.5">
-                    Today
-                  </span>
-                )}
+              <div className="rounded-full bg-[#fdf0ec] p-4 border border-[#eedad2] shadow-2xs flex-shrink-0">
+                <span className="text-3xl animate-pulse inline-block" title="Walking in Grace">🕊️</span>
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+          );
+        })()}
 
         {/* Sacred Anchor & Reflection */}
         <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-8 shadow-2xs space-y-6">
@@ -274,7 +234,7 @@ export default async function DashboardPage() {
       {/* Global Footer */}
       <div className="hidden md:block"><Footer /></div>
 
-      {/* Mobile Bottom Navigation Bar (Optimized for Instant Touch Response) */}
+      {/* Mobile Bottom Navigation Bar */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-emerald-900/10 bg-[#fbf5f2]/98 py-1 backdrop-blur-md md:hidden shadow-2xl touch-manipulation">
         <a href="/dashboard" className="flex-1 py-3 flex flex-col items-center justify-center text-[11px] font-medium text-emerald-900 active:scale-95 transition-transform duration-100">
           <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
