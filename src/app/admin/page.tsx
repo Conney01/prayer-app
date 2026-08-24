@@ -1,8 +1,8 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { ShieldCheck, ArrowLeft, MessageSquare, Mail, Calendar } from "lucide-react";
+import { ShieldCheck, ArrowLeft, MessageSquare, Mail, Calendar, BookOpen, Users, DollarSign, Layers } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -13,31 +13,43 @@ export default async function AdminPage() {
     redirect("/dashboard");
   }
 
-  const prayers = await db.prayer.findMany({
-    include: { category: true },
-    orderBy: { createdAt: "desc" },
-  });
+  // Fetch all management data in parallel
+  const [prayers, categories, feedbacks, donations, userCount] = await Promise.all([
+    db.prayer.findMany({
+      include: { category: true, situation: true },
+      orderBy: { createdAt: "desc" },
+    }),
+    db.category.findMany({
+      include: { _count: { select: { prayers: true } } },
+      orderBy: { sortOrder: "asc" },
+    }),
+    db.feedback.findMany({
+      orderBy: { createdAt: "desc" },
+    }),
+    db.donation.findMany({
+      orderBy: { createdAt: "desc" },
+    }),
+    db.user.count(),
+  ]);
 
-  const categories = await db.category.findMany({
-    orderBy: { sortOrder: "asc" },
-  });
-
-  const feedbacks = await db.feedback.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+  const totalDonationsAmount = donations
+    .filter((d) => d.status === "COMPLETED")
+    .reduce((acc, curr) => acc + curr.amount, 0);
 
   return (
     <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] py-8 px-4 sm:px-8">
-      <div className="mx-auto max-w-5xl space-y-8">
-        <header className="flex items-center justify-between border-b border-[#eedad2] pb-6">
+      <div className="mx-auto max-w-6xl space-y-10">
+        
+        {/* Header */}
+        <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-[#eedad2] pb-6 gap-4">
           <div className="flex items-center space-x-3">
-            <ShieldCheck className="h-7 w-7 text-[#2d5a3d]" />
+            <ShieldCheck className="h-8 w-8 text-[#2d5a3d]" />
             <div>
               <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#1f3a28]">
-                Admin Curator Panel
+                Admin Curator Command Center
               </h1>
               <p className="text-xs text-[#6b635e]">
-                Manage prayer collections, devotions, and view user feedback.
+                Welcome back, curator. Manage your sanctuary ecosystem, prayers, and seeker support.
               </p>
             </div>
           </div>
@@ -59,6 +71,110 @@ export default async function AdminPage() {
           </div>
         </header>
 
+        {/* Overview Stat Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-5 shadow-2xs space-y-1">
+            <div className="flex items-center justify-between text-[#6b635e]">
+              <span className="text-xs font-medium uppercase tracking-wider">Prayers</span>
+              <BookOpen className="h-4 w-4 text-[#2d5a3d]" />
+            </div>
+            <p className="font-serif text-2xl font-bold text-[#1f3a28]">{prayers.length}</p>
+            <span className="text-[10px] text-[#6b635e]">Published & Drafts</span>
+          </div>
+
+          <div className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-5 shadow-2xs space-y-1">
+            <div className="flex items-center justify-between text-[#6b635e]">
+              <span className="text-xs font-medium uppercase tracking-wider">Seekers</span>
+              <Users className="h-4 w-4 text-[#2d5a3d]" />
+            </div>
+            <p className="font-serif text-2xl font-bold text-[#1f3a28]">{userCount}</p>
+            <span className="text-[10px] text-[#6b635e]">Registered accounts</span>
+          </div>
+
+          <div className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-5 shadow-2xs space-y-1">
+            <div className="flex items-center justify-between text-[#6b635e]">
+              <span className="text-xs font-medium uppercase tracking-wider">Feedback</span>
+              <MessageSquare className="h-4 w-4 text-[#2d5a3d]" />
+            </div>
+            <p className="font-serif text-2xl font-bold text-[#1f3a28]">{feedbacks.length}</p>
+            <span className="text-[10px] text-[#6b635e]">Support submissions</span>
+          </div>
+
+          <div className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-5 shadow-2xs space-y-1">
+            <div className="flex items-center justify-between text-[#6b635e]">
+              <span className="text-xs font-medium uppercase tracking-wider">Support Pool</span>
+              <DollarSign className="h-4 w-4 text-[#2d5a3d]" />
+            </div>
+            <p className="font-serif text-2xl font-bold text-[#1f3a28]">Ksh {totalDonationsAmount.toLocaleString()}</p>
+            <span className="text-[10px] text-[#6b635e]">{donations.length} total contributions</span>
+          </div>
+        </div>
+
+        {/* Categories Breakdown */}
+        <div className="space-y-4">
+          <div className="flex items-center space-x-2 border-b border-[#eedad2]/60 pb-2">
+            <Layers className="h-5 w-5 text-[#2d5a3d]" />
+            <h2 className="font-serif text-lg font-bold text-[#1f3a28]">
+              Prayer Categories &amp; Distribution
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {categories.map((cat) => (
+              <div key={cat.id} className="rounded-xl border border-[#eedad2] bg-[#faf3f0] p-4 flex items-center justify-between shadow-2xs">
+                <span className="font-serif text-xs font-semibold text-[#1f3a28]">{cat.name}</span>
+                <span className="rounded-full bg-[#2d5a3d]/10 px-2 py-0.5 text-[10px] font-bold text-[#2d5a3d]">
+                  {cat._count.prayers}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Donations & Support Tracking */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-2">
+            <div className="flex items-center space-x-2">
+              <DollarSign className="h-5 w-5 text-[#2d5a3d]" />
+              <h2 className="font-serif text-lg font-bold text-[#1f3a28]">
+                Contributions &amp; M-Pesa Support ({donations.length})
+              </h2>
+            </div>
+            <span className="text-xs text-[#6b635e]">Financial Ledger</span>
+          </div>
+
+          {donations.length === 0 ? (
+            <div className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-6 text-center text-xs text-[#6b635e]">
+              No contributions recorded yet.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {donations.map((don) => (
+                <div key={don.id} className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-4 shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between text-xs border-b border-[#eedad2]/50 pb-2">
+                    <span className="font-bold text-[#1f3a28]">
+                      {don.isAnonymous ? "Anonymous Seeker" : (don.donorName ?? don.phoneNumber)}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                      don.status === "COMPLETED" ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
+                    }`}>
+                      {don.status}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs text-[#6b635e]">
+                    <span>Amount: <strong className="text-[#1f3a28]">Ksh {don.amount}</strong></span>
+                    <span>{new Date(don.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  {don.mpesaReceiptNumber && (
+                    <div className="text-[10px] text-[#2d5a3d] font-mono">
+                      Receipt: {don.mpesaReceiptNumber}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* User Feedback & Reviews Section */}
         <div className="space-y-4">
           <div className="flex items-center justify-between border-b border-[#eedad2]/60 pb-2">
@@ -78,7 +194,7 @@ export default async function AdminPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {feedbacks.map((fb) => (
-                <div key={fb.id} className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-5 shadow-xs space-y-3">
+                <div key={fb.id} className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-5 shadow-2xs space-y-3">
                   <div className="flex items-center justify-between text-[11px] text-[#6b635e] border-b border-[#eedad2]/50 pb-2">
                     <span className="flex items-center space-x-1.5 font-medium text-[#1f3a28]">
                       <Mail className="h-3.5 w-3.5 text-[#2d5a3d]" />
@@ -123,6 +239,11 @@ export default async function AdminPage() {
                         Daily Devotion
                       </span>
                     )}
+                    {!prayer.isPublished && (
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold text-amber-800">
+                        Draft
+                      </span>
+                    )}
                   </div>
                   <h3 className="font-serif text-sm font-bold text-[#1f3a28]">
                     {prayer.title}
@@ -141,6 +262,7 @@ export default async function AdminPage() {
             ))}
           </div>
         </div>
+
       </div>
     </div>
   );
