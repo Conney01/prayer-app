@@ -1,7 +1,8 @@
-"use server";
+﻿"use server";
 
 import bcrypt from "bcryptjs";
 import { db } from "~/server/db";
+import { sendWelcomeEmail } from "~/server/email";
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -28,7 +29,7 @@ export async function registerUser(formData: FormData) {
   });
 
   if (existingUser) {
-    return { error: "An account with this email already exists." };
+    return { error: "An account with this email already exists."};
   }
 
   const hashedPassword = await bcrypt.hash(password, 12);
@@ -41,6 +42,12 @@ export async function registerUser(formData: FormData) {
       role: "USER",
     },
   });
+
+  try {
+    await sendWelcomeEmail(email, name);
+  } catch (error) {
+    console.error("Failed to send welcome email:", error);
+  }
 
   return { success: true };
 }
