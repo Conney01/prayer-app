@@ -1,7 +1,7 @@
 ﻿import Link from "next/link";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { Sparkles, BookOpen, ArrowRight, Heart, Bookmark, Shield, Sun } from "lucide-react";
+import { Sparkles, BookOpen, ArrowRight, Heart, Bookmark, Shield, Sun, Calendar } from "lucide-react";
 import { completePrayerAction } from "~/app/actions/prayer-interactions";
 import { Footer } from "~/components/footer";
 import { LogoutButton } from "~/components/logout-btn";
@@ -150,16 +150,16 @@ export default async function DashboardPage() {
           );
         })()}
 
-        {/* 7-Day Calendar Bar (Sun - Sat) Restored */}
+        {/* 7-Day Calendar Bar (Sun - Sat) — Days in Stillness */}
         <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-2xs space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="rounded-full bg-[#fdf0ec] p-2 border border-[#eedad2]">
-                <span className="text-xl inline-block" title="Weekly Rhythm">📅</span>
+              <div className="rounded-xl bg-white p-3 text-[#2d5a3d] border border-[#eedad2] shadow-2xs">
+                <Calendar className="h-5 w-5" />
               </div>
               <div>
                 <h3 className="font-serif text-base font-bold text-[#1f3a28]">
-                  Weekly Rhythm
+                  Days in Stillness
                 </h3>
                 <p className="text-xs text-[#6b635e]">
                   Walking in grace through every day of the week.
