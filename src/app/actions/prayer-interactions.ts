@@ -40,7 +40,6 @@ export async function toggleFavoriteAction(prayerId: string) {
       });
     }
 
-    // Safely revalidate the specific paths
     try {
       revalidatePath("/dashboard/saved");
       revalidatePath("/prayers/[slug]", "page");
@@ -49,9 +48,10 @@ export async function toggleFavoriteAction(prayerId: string) {
     }
 
     return { success: true, isFavorite: !existing };
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("Toggle favorite error:", error);
-    return { success: false, error: "Database error occurred." };
+    const errorMessage = error instanceof Error ? error.message : "Unknown database failure";
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -93,6 +93,7 @@ export async function completePrayerAction(_prayerId?: string) {
     return { success: true, streakCount: newStreak };
   } catch (error) {
     console.error("Complete prayer error:", error);
-    return { success: false, error: "Failed to mark prayer complete." };
+    const errorMessage = error instanceof Error ? error.message : "Failed to mark prayer complete.";
+    return { success: false, error: errorMessage };
   }
 }
