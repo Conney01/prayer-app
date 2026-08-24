@@ -1,11 +1,13 @@
 ﻿import Link from 'next/link';
-import { User, ArrowLeft, Shield, Mail, Calendar, Bookmark } from 'lucide-react';
+import { User, ArrowLeft, Mail, Calendar, Bookmark, Edit3 } from 'lucide-react';
 import { auth } from '~/server/auth';
 import { db } from '~/server/db';
 import { redirect } from 'next/navigation';
 import { LogoutButton } from '~/components/logout-btn';
+import { updateProfileName } from '~/app/actions/profile-actions';
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -35,7 +37,9 @@ export default async function ProfilePage() {
 
         {/* Main Content */}
         <main className="max-w-4xl mx-auto px-4 py-10 space-y-8">
-          <div className="bg-[#faf3f0] rounded-3xl p-8 sm:p-10 border border-[#eedad2] shadow-2xs space-y-6">
+          <div className="bg-[#faf3f0] rounded-3xl p-8 sm:p-10 border border-[#eedad2] shadow-2xs space-y-8">
+            
+            {/* User Header Info */}
             <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6 text-center sm:text-left">
               <div className="w-20 h-20 bg-[#fdf0ec] rounded-full flex items-center justify-center text-[#2d5a3d] border-2 border-[#d4907a] shadow-xs flex-shrink-0">
                 <User className="h-10 w-10 text-[#d4907a]" />
@@ -51,30 +55,50 @@ export default async function ProfilePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-[#eedad2]">
-              <div className="bg-white rounded-2xl p-5 border border-[#eedad2] shadow-2xs text-center space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6b635e]">Account Role</span>
-                <p className="font-serif text-base font-bold text-[#2d5a3d] flex items-center justify-center">
-                  <Shield className="h-4 w-4 mr-1 text-[#d4907a]" /> {user?.role ?? session.user.role ?? "USER"}
-                </p>
-              </div>
-
-              <div className="bg-white rounded-2xl p-5 border border-[#eedad2] shadow-2xs text-center space-y-1">
+            {/* Profile Statistics Grid (Saved Prayers & Member Since) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-[#eedad2]">
+              <div className="bg-white rounded-2xl p-6 border border-[#eedad2] shadow-2xs text-center space-y-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#6b635e]">Saved Prayers</span>
-                <p className="font-serif text-base font-bold text-[#1f3a28] flex items-center justify-center">
-                  <Bookmark className="h-4 w-4 mr-1 text-[#2d5a3d]" /> {user?.savedPrayers?.length ?? 0} Bookmarked
+                <p className="font-serif text-lg font-bold text-[#1f3a28] flex items-center justify-center pt-1">
+                  <Bookmark className="h-4 w-4 mr-1.5 text-[#2d5a3d]" /> {user?.savedPrayers?.length ?? 0} Bookmarked
                 </p>
               </div>
 
-              <div className="bg-white rounded-2xl p-5 border border-[#eedad2] shadow-2xs text-center space-y-1">
+              <div className="bg-white rounded-2xl p-6 border border-[#eedad2] shadow-2xs text-center space-y-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#6b635e]">Member Since</span>
-                <p className="font-serif text-base font-bold text-[#1f3a28] flex items-center justify-center">
-                  <Calendar className="h-4 w-4 mr-1 text-[#d4907a]" /> {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Recent"}
+                <p className="font-serif text-lg font-bold text-[#1f3a28] flex items-center justify-center pt-1">
+                  <Calendar className="h-4 w-4 mr-1.5 text-[#d4907a]" /> {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Recent"}
                 </p>
               </div>
             </div>
 
-            <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#eedad2]">
+            {/* Edit Name Form Section */}
+            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[#eedad2] shadow-2xs space-y-4">
+              <div className="flex items-center space-x-2 text-[#d4907a] text-xs font-semibold uppercase tracking-wider">
+                <Edit3 className="h-4 w-4" />
+                <span>Update Display Name</span>
+              </div>
+
+              <form action={updateProfileName} className="flex flex-col sm:flex-row items-center gap-3">
+                <input
+                  type="text"
+                  name="name"
+                  defaultValue={user?.name ?? session.user.name ?? ""}
+                  placeholder="Enter your display name"
+                  required
+                  className="w-full flex-1 rounded-xl border border-[#eedad2] bg-[#fdf0ec]/50 px-4 py-3 text-xs text-[#1f3a28] focus:outline-none focus:border-[#2d5a3d] transition"
+                />
+                <button
+                  type="submit"
+                  className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-[#2d5a3d] text-white px-6 py-3 text-xs font-semibold hover:bg-[#1f3a28] transition shadow-2xs"
+                >
+                  Save Name
+                </button>
+              </form>
+            </div>
+
+            {/* Footer / Logout */}
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#eedad2]">
               <p className="text-xs text-[#6b635e] italic">
                 &ldquo;Quiet stillness in God&apos;s constant presence.&rdquo;
               </p>
