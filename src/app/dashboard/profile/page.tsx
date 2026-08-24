@@ -1,137 +1,123 @@
-﻿import Link from 'next/link';
-import { User, ArrowLeft, Mail, Calendar, Bookmark } from 'lucide-react';
-import { auth } from '~/server/auth';
-import { db } from '~/server/db';
-import { redirect } from 'next/navigation';
-import { LogoutButton } from '~/components/logout-btn';
+﻿import { redirect } from "next/navigation";
+import Link from "next/link";
+import { auth } from "~/server/auth";
+import { db } from "~/server/db";
+import { Bookmark, Calendar, Mail, ArrowLeft, Globe } from "lucide-react";
+import { LogoutButton } from "~/components/logout-btn";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 export default async function ProfilePage() {
   const session = await auth();
-  if (!session?.user?.id) {
+  const userId = session?.user?.id;
+
+  if (!userId) {
     redirect("/login");
   }
 
   const user = await db.user.findUnique({
-    where: { id: session.user.id },
+    where: { id: userId },
     include: {
       savedPrayers: true,
     },
   });
 
-  const displayName = user?.name ?? session.user.name ?? "Aron Cornellious";
-  const displayEmail = user?.email ?? session.user.email;
+  if (!user) {
+    redirect("/login");
+  }
 
   return (
-    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] flex flex-col justify-between pb-24 md:pb-12">
-      <div>
-        {/* Top Header Bar */}
-        <header className="border-b border-[#eedad2] bg-[#faf3f0]/85 backdrop-blur-md sticky top-0 z-40">
-          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-            <Link href="/dashboard" className="inline-flex items-center text-xs font-semibold text-[#2d5a3d] hover:text-[#1f3a28] transition">
-              <ArrowLeft className="h-4 w-4 mr-1.5" /> Return to Sanctuary
-            </Link>
-            <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#d4907a]">User Profile</span>
+    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] py-8 px-4 sm:px-8 pb-24 sm:pb-8 flex flex-col justify-between">
+      <div className="mx-auto max-w-2xl w-full space-y-8">
+        
+        {/* Top Header */}
+        <div className="flex items-center justify-between border-b border-[#eedad2] pb-4">
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center space-x-1.5 text-xs font-semibold text-[#6b635e] hover:text-[#1f3a28] transition"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Return to Sanctuary</span>
+          </Link>
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">
+            User Profile
+          </span>
+        </div>
+
+        {/* User Identity Card */}
+        <div className="text-center space-y-2 pt-2">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#d4907a]">
+            Sanctuary Member
+          </span>
+          <h1 className="font-serif text-3xl font-bold text-[#1f3a28]">
+            {user.name ?? "Friend"}
+          </h1>
+          <div className="inline-flex items-center space-x-1.5 text-xs text-[#6b635e] bg-white/60 border border-[#eedad2] px-3 py-1 rounded-full shadow-2xs">
+            <Mail className="h-3.5 w-3.5 text-[#2d5a3d]" />
+            <span>{user.email}</span>
           </div>
-        </header>
+        </div>
 
-        {/* Main Content */}
-        <main className="max-w-4xl mx-auto px-4 py-10 space-y-8">
-          <div className="bg-[#faf3f0] rounded-3xl p-8 sm:p-10 border border-[#eedad2] shadow-2xs space-y-8">
-            
-            {/* User Header Info */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6 text-center sm:text-left">
-              <div className="w-20 h-20 bg-[#fdf0ec] rounded-full flex items-center justify-center text-[#2d5a3d] border-2 border-[#d4907a] shadow-xs flex-shrink-0">
-                <User className="h-10 w-10 text-[#d4907a]" />
-              </div>
-              <div className="space-y-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">Sanctuary Member</span>
-                <h1 className="font-serif text-3xl font-bold text-[#1f3a28]">
-                  {displayName}
-                </h1>
-                <p className="text-xs text-[#6b635e] flex items-center justify-center sm:justify-start pt-0.5">
-                  <Mail className="h-3.5 w-3.5 mr-1.5 text-[#d4907a]" /> {displayEmail}
-                </p>
-              </div>
+        {/* Stats Section */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-5 shadow-2xs space-y-1">
+            <div className="flex items-center justify-between text-[#6b635e]">
+              <span className="text-xs font-medium uppercase tracking-wider">Saved Prayers</span>
+              <Bookmark className="h-4 w-4 text-[#2d5a3d]" />
             </div>
-
-            {/* Profile Statistics Grid (Saved Prayers & Member Since) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-[#eedad2]">
-              <div className="bg-white rounded-2xl p-6 border border-[#eedad2] shadow-2xs text-center space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6b635e]">Saved Prayers</span>
-                <p className="font-serif text-lg font-bold text-[#1f3a28] flex items-center justify-center pt-1">
-                  <Bookmark className="h-4 w-4 mr-1.5 text-[#2d5a3d]" /> {user?.savedPrayers?.length ?? 0} Bookmarked
-                </p>
-              </div>
-
-              <div className="bg-white rounded-2xl p-6 border border-[#eedad2] shadow-2xs text-center space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6b635e]">Member Since</span>
-                <p className="font-serif text-lg font-bold text-[#1f3a28] flex items-center justify-center pt-1">
-                  <Calendar className="h-4 w-4 mr-1.5 text-[#d4907a]" /> {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Recent"}
-                </p>
-              </div>
-            </div>
-
-            {/* Reach Out & Connect Section */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[#eedad2] shadow-2xs space-y-4">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">Reach Out & Connect</span>
-              <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
-                <a
-                  href="https://instagram.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="w-full sm:w-1/2 inline-flex items-center justify-center space-x-2 rounded-xl border border-[#eedad2] bg-[#fdf0ec]/50 px-4 py-3 text-xs font-semibold text-[#1f3a28] hover:bg-[#faf3f0] transition shadow-2xs"
-                >
-                  <svg className="h-4 w-4 text-[#d4907a]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
-                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
-                  </svg>
-                  <span>Instagram</span>
-                </a>
-
-                <a
-                  href="mailto:support@mysanctuary.live"
-                  className="w-full sm:w-1/2 inline-flex items-center justify-center space-x-2 rounded-xl border border-[#eedad2] bg-[#fdf0ec]/50 px-4 py-3 text-xs font-semibold text-[#1f3a28] hover:bg-[#faf3f0] transition shadow-2xs"
-                >
-                  <Mail className="h-4 w-4 text-[#2d5a3d]" />
-                  <span>Email Support</span>
-                </a>
-              </div>
-            </div>
-
-            {/* Footer / Logout */}
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#eedad2]">
-              <p className="text-xs text-[#6b635e] italic">
-                &ldquo;Quiet stillness in God&apos;s constant presence.&rdquo;
-              </p>
-              <LogoutButton />
-            </div>
+            <p className="font-serif text-2xl font-bold text-[#1f3a28]">
+              {user.savedPrayers.length} Bookmarked
+            </p>
           </div>
-        </main>
+
+          <div className="rounded-2xl border border-[#eedad2] bg-[#faf3f0] p-5 shadow-2xs space-y-1">
+            <div className="flex items-center justify-between text-[#6b635e]">
+              <span className="text-xs font-medium uppercase tracking-wider">Member Since</span>
+              <Calendar className="h-4 w-4 text-[#2d5a3d]" />
+            </div>
+            <p className="font-serif text-xl font-bold text-[#1f3a28] mt-1">
+              {new Date(user.createdAt).toLocaleDateString()}
+            </p>
+          </div>
+        </div>
+
+        {/* Reach Out & Connect Card */}
+        <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-6 shadow-2xs space-y-4">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-[#6b635e] text-center">
+            Reach Out &amp; Connect
+          </h3>
+          <div className="space-y-3">
+            <a
+              href="https://www.instagram.com/sanctuary.daily"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center space-x-2 w-full rounded-xl border border-[#eedad2] bg-white py-3 text-xs font-semibold text-[#1f3a28] hover:bg-[#faf3f0] transition shadow-2xs"
+            >
+              <Globe className="h-4 w-4 text-[#d4907a]" />
+              <span>Instagram (@sanctuary.daily)</span>
+            </a>
+
+            <a
+              href="mailto:mysanctuarydaily@gmail.com"
+              className="flex items-center justify-center space-x-2 w-full rounded-xl border border-[#eedad2] bg-white py-3 text-xs font-semibold text-[#1f3a28] hover:bg-[#faf3f0] transition shadow-2xs"
+            >
+              <Mail className="h-4 w-4 text-[#2d5a3d]" />
+              <span>Email Support (mysanctuarydaily@gmail.com)</span>
+            </a>
+          </div>
+        </div>
+
+        {/* Footer Quote & Logout */}
+        <div className="text-center space-y-4 pt-4">
+          <p className="text-xs font-serif italic text-[#6b635e]">
+            &ldquo;Quiet stillness in God&apos;s constant presence.&rdquo;
+          </p>
+          <div className="flex justify-center">
+            <LogoutButton />
+          </div>
+        </div>
+
       </div>
-
-      {/* Mobile Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-emerald-900/10 bg-[#fbf5f2]/98 py-1 backdrop-blur-md md:hidden shadow-2xl touch-manipulation">
-        <a href="/dashboard" className="flex-1 py-3 flex flex-col items-center justify-center text-[11px] font-medium text-emerald-800/80 hover:text-emerald-900 active:scale-95 transition-transform duration-100">
-          <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-          Home
-        </a>
-        <a href="/dashboard/saved" className="flex-1 py-3 flex flex-col items-center justify-center text-[11px] font-medium text-emerald-800/80 hover:text-emerald-900 active:scale-95 transition-transform duration-100">
-          <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-          Saved
-        </a>
-        <a href="/support" className="flex-1 py-3 flex flex-col items-center justify-center text-[11px] font-medium text-emerald-800/80 hover:text-emerald-900 active:scale-95 transition-transform duration-100">
-          <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-          Support
-        </a>
-        <a href="/dashboard/profile" className="flex-1 py-3 flex flex-col items-center justify-center text-[11px] font-medium text-emerald-900 active:scale-95 transition-transform duration-100">
-          <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-          Profile
-        </a>
-      </nav>
     </div>
   );
 }
