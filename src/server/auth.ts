@@ -24,9 +24,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const user = await db.user.findUnique({ where: { email } });
 
-        if (!user?.password) {
-          return null;
-        }
+        if (!user?.password) return null;
 
         const isValid = await compare(password, user.password);
         if (!isValid) return null;
@@ -43,10 +41,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        token.sub = user.id;
-        token.name = user.name;
-        token.email = user.email;
+      if (token.email) {
+        // 1. Look up the user in our PostgreSQL database
+        let dbUser = await db.user.findUnique({
+          where: { email: token.email }
+        });
+
+        // 2. If they logged in via Google and don't exist yet, create them!
+        dbUser ??= await db.user.create({
+          data: {
+            email: token.email,
+            name: token.name ?? user?.name ?? "User",
+            image: token.picture ?? user?.image,
+          }
+        });
+
+        // 3. Force the session token ID to strictly be the PostgreSQL database ID
+        token.sub = dbUser.id;
+        token.name = dbUser.name;
       }
       return token;
     },
