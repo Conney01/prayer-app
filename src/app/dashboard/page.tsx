@@ -76,7 +76,7 @@ export default async function DashboardPage() {
   });
 
   return (
-    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] flex flex-col justify-between">
+    <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] flex flex-col justify-between pb-24 sm:pb-0">
       <div className="py-8 px-4 sm:px-8 max-w-5xl mx-auto w-full space-y-10">
         
         {/* Top Header & Action Buttons */}
