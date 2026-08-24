@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import { Bookmark, Loader2 } from "lucide-react";
@@ -16,9 +16,16 @@ export function FavoriteButton({
 
   const handleToggle = () => {
     startTransition(async () => {
-      const res = await toggleFavoriteAction(prayerId);
-      if (res.success && res.isFavorite !== undefined) {
-        setIsFavorite(res.isFavorite);
+      try {
+        const res = await toggleFavoriteAction(prayerId);
+        if (res.success && res.isFavorite !== undefined) {
+          setIsFavorite(res.isFavorite);
+        } else {
+          // Show the exact error coming from the server
+          alert("Could not save: " + (res.error ?? "Unknown error. Please try logging out and logging back in."));
+        }
+      } catch {
+        alert("Network error while saving prayer.");
       }
     });
   };
