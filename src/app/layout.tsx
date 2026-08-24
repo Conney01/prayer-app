@@ -1,13 +1,15 @@
 ﻿import type { Metadata, Viewport } from "next";
 import "~/styles/globals.css";
+import { PwaRegister } from "~/components/pwa-register";
 
 export const metadata: Metadata = {
   title: "Sanctuary — A Peaceful Space for Prayer",
   description: "A thoughtfully curated digital prayer companion designed to nurture personal communion with God.",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/icon.jpg",
-    apple: "/apple-touch-icon.jpg",
+    icon: { url: "/icon.jpg", type: "image/jpeg" },
+    shortcut: { url: "/icon.jpg", type: "image/jpeg" },
+    apple: { url: "/apple-touch-icon.jpg", type: "image/jpeg" },
   },
   appleWebApp: {
     capable: true,
@@ -30,6 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans antialiased bg-[#fdf0ec] text-[#1f3a28]">
+        <PwaRegister />
         {children}
       </body>
     </html>
