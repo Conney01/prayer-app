@@ -7,9 +7,9 @@ export const metadata: Metadata = {
   description: "A thoughtfully curated digital prayer companion designed to nurture personal communion with God.",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: { url: "/icon.jpg", type: "image/jpeg" },
-    shortcut: { url: "/icon.jpg", type: "image/jpeg" },
-    apple: { url: "/apple-touch-icon.jpg", type: "image/jpeg" },
+    icon: [{ url: "/favicon.png", type: "image/png" }],
+    shortcut: [{ url: "/favicon.png", type: "image/png" }],
+    apple: [{ url: "/apple-touch-icon.png", type: "image/png" }],
   },
   appleWebApp: {
     capable: true,
