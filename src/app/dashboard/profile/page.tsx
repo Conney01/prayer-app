@@ -1,10 +1,9 @@
 ﻿import Link from 'next/link';
-import { User, ArrowLeft, Mail, Calendar, Bookmark, Edit3 } from 'lucide-react';
+import { User, ArrowLeft, Mail, Calendar, Bookmark } from 'lucide-react';
 import { auth } from '~/server/auth';
 import { db } from '~/server/db';
 import { redirect } from 'next/navigation';
 import { LogoutButton } from '~/components/logout-btn';
-import { updateProfileName } from '~/app/actions/profile-actions';
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -23,6 +22,7 @@ export default async function ProfilePage() {
   });
 
   const displayName = user?.name ?? session.user.name ?? "Aron Cornellious";
+  const displayEmail = user?.email ?? session.user.email;
 
   return (
     <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] flex flex-col justify-between pb-24 md:pb-12">
@@ -52,7 +52,7 @@ export default async function ProfilePage() {
                   {displayName}
                 </h1>
                 <p className="text-xs text-[#6b635e] flex items-center justify-center sm:justify-start pt-0.5">
-                  <Mail className="h-3.5 w-3.5 mr-1.5 text-[#d4907a]" /> {user?.email ?? session.user.email}
+                  <Mail className="h-3.5 w-3.5 mr-1.5 text-[#d4907a]" /> {displayEmail}
                 </p>
               </div>
             </div>
@@ -74,29 +74,32 @@ export default async function ProfilePage() {
               </div>
             </div>
 
-            {/* Edit Name Form Section */}
+            {/* Reach Out & Connect Section */}
             <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[#eedad2] shadow-2xs space-y-4">
-              <div className="flex items-center space-x-2 text-[#d4907a] text-xs font-semibold uppercase tracking-wider">
-                <Edit3 className="h-4 w-4" />
-                <span>Update Display Name</span>
-              </div>
-
-              <form action={updateProfileName} className="flex flex-col sm:flex-row items-center gap-3">
-                <input
-                  type="text"
-                  name="name"
-                  defaultValue={displayName}
-                  placeholder="Enter your display name"
-                  required
-                  className="w-full flex-1 rounded-xl border border-[#eedad2] bg-[#fdf0ec]/50 px-4 py-3 text-xs text-[#1f3a28] focus:outline-none focus:border-[#2d5a3d] transition"
-                />
-                <button
-                  type="submit"
-                  className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-[#2d5a3d] text-white px-6 py-3 text-xs font-semibold hover:bg-[#1f3a28] transition shadow-2xs cursor-pointer"
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">Reach Out & Connect</span>
+              <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
+                <a
+                  href="https://instagram.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-1/2 inline-flex items-center justify-center space-x-2 rounded-xl border border-[#eedad2] bg-[#fdf0ec]/50 px-4 py-3 text-xs font-semibold text-[#1f3a28] hover:bg-[#faf3f0] transition shadow-2xs"
                 >
-                  Save Name
-                </button>
-              </form>
+                  <svg className="h-4 w-4 text-[#d4907a]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+                  </svg>
+                  <span>Instagram</span>
+                </a>
+
+                <a
+                  href="mailto:support@mysanctuary.live"
+                  className="w-full sm:w-1/2 inline-flex items-center justify-center space-x-2 rounded-xl border border-[#eedad2] bg-[#fdf0ec]/50 px-4 py-3 text-xs font-semibold text-[#1f3a28] hover:bg-[#faf3f0] transition shadow-2xs"
+                >
+                  <Mail className="h-4 w-4 text-[#2d5a3d]" />
+                  <span>Email Support</span>
+                </a>
+              </div>
             </div>
 
             {/* Footer / Logout */}
