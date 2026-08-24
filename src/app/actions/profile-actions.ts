@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 export async function updateProfileName(formData: FormData) {
   try {
     const session = await auth();
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       console.error("Profile update error: Unauthorized");
       return;
     }
@@ -17,7 +17,7 @@ export async function updateProfileName(formData: FormData) {
     if (!name) return;
 
     await db.user.update({
-      where: { id: session.user.id },
+      where: { email: session.user.email },
       data: { name },
     });
 

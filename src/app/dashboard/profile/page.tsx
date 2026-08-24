@@ -11,16 +11,18 @@ export const revalidate = 0;
 
 export default async function ProfilePage() {
   const session = await auth();
-  if (!session?.user?.id) {
+  if (!session?.user?.email) {
     redirect("/login");
   }
 
   const user = await db.user.findUnique({
-    where: { id: session.user.id },
+    where: { email: session.user.email },
     include: {
       savedPrayers: true,
     },
   });
+
+  const displayName = user?.name ?? session.user.name ?? "Aron Cornellious";
 
   return (
     <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] flex flex-col justify-between pb-24 md:pb-12">
@@ -47,7 +49,7 @@ export default async function ProfilePage() {
               <div className="space-y-1.5">
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#d4907a]">Sanctuary Member</span>
                 <h1 className="font-serif text-3xl font-bold text-[#1f3a28]">
-                  {user?.name ?? session.user.name ?? "Aron Cornellious"}
+                  {displayName}
                 </h1>
                 <p className="text-xs text-[#6b635e] flex items-center justify-center sm:justify-start pt-0.5">
                   <Mail className="h-3.5 w-3.5 mr-1.5 text-[#d4907a]" /> {user?.email ?? session.user.email}
@@ -83,14 +85,14 @@ export default async function ProfilePage() {
                 <input
                   type="text"
                   name="name"
-                  defaultValue={user?.name ?? session.user.name ?? ""}
+                  defaultValue={displayName}
                   placeholder="Enter your display name"
                   required
                   className="w-full flex-1 rounded-xl border border-[#eedad2] bg-[#fdf0ec]/50 px-4 py-3 text-xs text-[#1f3a28] focus:outline-none focus:border-[#2d5a3d] transition"
                 />
                 <button
                   type="submit"
-                  className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-[#2d5a3d] text-white px-6 py-3 text-xs font-semibold hover:bg-[#1f3a28] transition shadow-2xs"
+                  className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl bg-[#2d5a3d] text-white px-6 py-3 text-xs font-semibold hover:bg-[#1f3a28] transition shadow-2xs cursor-pointer"
                 >
                   Save Name
                 </button>
