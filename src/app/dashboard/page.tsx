@@ -101,7 +101,7 @@ export default async function DashboardPage() {
     };
   });
 
-  const categories = await db.category.findMany({
+  const rawCategories = await db.category.findMany({
     include: {
       situations: {
         include: {
@@ -115,6 +115,15 @@ export default async function DashboardPage() {
       },
     },
     orderBy: { sortOrder: "asc" },
+  });
+
+  // Pin "Daily Prayers" always to the top (Collection 01), other categories follow
+  const categories = [...rawCategories].sort((a, b) => {
+    const aDaily = a.name.toLowerCase().includes("daily prayer");
+    const bDaily = b.name.toLowerCase().includes("daily prayer");
+    if (aDaily && !bDaily) return -1;
+    if (!aDaily && bDaily) return 1;
+    return 0;
   });
 
   return (
