@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { LoginForm } from "./form";
 
@@ -39,7 +39,7 @@ export default function LoginPage() {
       </div>
 
       <footer className="text-center text-xs text-[#6b635e] font-serif pt-8">
-        <p>© 2026 Sanctuary. Grace over perfection.</p>
+        <p>Â© 2026 Sanctuary. Grace over perfection.</p>
       </footer>
     </div>
   );

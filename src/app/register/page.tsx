@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -61,7 +61,7 @@ export default function RegisterPage() {
             Begin Your Journey
           </h1>
           <p className="text-xs text-[#6b635e]">
-            Create an account to track your prayer rhythm and streaks
+            Create a personal space to save your favorite devotions and find daily stillness
           </p>
         </div>
 
@@ -150,7 +150,7 @@ export default function RegisterPage() {
       </div>
 
       <footer className="text-center text-xs text-[#6b635e] font-serif pt-8">
-        <p>© 2026 Sanctuary. Grace over perfection.</p>
+        <p>Â© 2026 Sanctuary. Grace over perfection.</p>
       </footer>
     </div>
   );
