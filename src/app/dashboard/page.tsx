@@ -21,6 +21,28 @@ export default async function DashboardPage() {
     }
   }
 
+  // Calculate exact Day of the Year for true daily rotation
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff = now.getTime() - start.getTime();
+  const oneDay = 1000 * 60 * 60 * 24;
+  const dayOfYear = Math.floor(diff / oneDay);
+
+  // Expanded daily rotating banner messages
+  const messages = [
+    "A quiet moment to pause, pray, and be present with God.",
+    "Slow down. Breathe. Make room for God.",
+    "Step away from the noise and spend a moment with God.",
+    "Whatever you're carrying today, bring it into God's presence.",
+    "There is no perfect way to come to God. Just come.",
+    "Leave the noise behind and be present with Him.",
+    "A prayer for whatever your heart is carrying today.",
+    "Find your rest in the palm of His hands.",
+    "His grace is sufficient for every moment of your day."
+  ];
+  const todayMsg = messages[(dayOfYear - 1) % messages.length];
+
+  // Expanded rich daily reflections for scripture & meditation
   const dailyReflections = [
     {
       verse: "Rejoice always, pray continually, give thanks in all circumstances; for this is God's will for you in Christ Jesus.",
@@ -37,9 +59,29 @@ export default async function DashboardPage() {
       reference: "Psalm 34:18",
       reflection: "Your vulnerability is never hidden from God. He draws nearest precisely when your heart feels most tender and weary.",
     },
+    {
+      verse: "Come to me, all you who are weary and burdened, and I will give you rest.",
+      reference: "Matthew 11:28",
+      reflection: "You do not need to earn your peace today. Jesus extends an open invitation to lay down your striving and simply receive His rest.",
+    },
+    {
+      verse: "The Lord is my shepherd, I lack nothing. He makes me lie down in green pastures, he leads me beside quiet waters.",
+      reference: "Psalm 23:1-2",
+      reflection: "Allow God to quiet the rushing thoughts in your mind today. He is leading you to a place of restoration and stillness.",
+    },
+    {
+      verse: "Let us then approach God’s throne of grace with confidence, so that we may receive mercy and find grace to help us in our time of need.",
+      reference: "Hebrews 4:16",
+      reflection: "Approach your prayer time today without fear or hesitation. You are coming to a Father whose heart is filled with mercy for you.",
+    },
+    {
+      verse: "Peace I leave with you; my peace I give you. I do not give to you as the world gives. Do not let your hearts be troubled and do not be afraid.",
+      reference: "John 14:27",
+      reflection: "Breathe in His divine peace and exhale your worries. His calm is deeper than any circumstance you are facing right now.",
+    }
   ];
 
-  const todayIndex = new Date().getDate() % dailyReflections.length;
+  const todayIndex = (dayOfYear - 1) % dailyReflections.length;
   const todayAnchor = dailyReflections[todayIndex] ?? dailyReflections[0];
 
   const today = new Date();
@@ -131,33 +173,19 @@ export default async function DashboardPage() {
         </div>
 
         {/* Daily Rotating Prayer Message Banner */}
-        {(() => {
-          const messages = [
-            "A quiet moment to pause, pray, and be present with God.",
-            "Slow down. Breathe. Make room for God.",
-            "Step away from the noise and spend a moment with God.",
-            "Whatever you're carrying today, bring it into God's presence.",
-            "There is no perfect way to come to God. Just come.",
-            "Leave the noise behind and be present with Him.",
-            "A prayer for whatever your heart is carrying today."
-          ];
-          const todayMsg = messages[new Date().getDate() % messages.length];
-          return (
-            <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-2xs space-y-4 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div className="space-y-3">
-                <h3 className="font-serif text-xl sm:text-2xl font-bold text-[#1f3a28] italic leading-relaxed">
-                  &ldquo;{todayMsg}&rdquo;
-                </h3>
-                <p className="text-xs text-[#6b635e]">
-                  Grace over perfection • Every breath in prayer counts.
-                </p>
-              </div>
-              <div className="rounded-full bg-[#fdf0ec] p-4 border border-[#eedad2] shadow-2xs flex-shrink-0">
-                <span className="text-3xl animate-pulse inline-block" title="Walking in Grace">🕊️</span>
-              </div>
-            </div>
-          );
-        })()}
+        <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-2xs space-y-4 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="space-y-3">
+            <h3 className="font-serif text-xl sm:text-2xl font-bold text-[#1f3a28] italic leading-relaxed">
+              &ldquo;{todayMsg}&rdquo;
+            </h3>
+            <p className="text-xs text-[#6b635e]">
+              Grace over perfection • Every breath in prayer counts.
+            </p>
+          </div>
+          <div className="rounded-full bg-[#fdf0ec] p-4 border border-[#eedad2] shadow-2xs flex-shrink-0">
+            <span className="text-3xl animate-pulse inline-block" title="Walking in Grace">🕊️</span>
+          </div>
+        </div>
 
         {/* 7-Day Calendar Bar (Sun - Sat) — Days in Stillness */}
         <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-2xs space-y-6">
