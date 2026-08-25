@@ -47,7 +47,13 @@ export default async function AdminPage() {
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <Link 
+              href="/admin/generator" 
+              className="inline-flex items-center justify-center rounded-xl bg-white border border-[#eedad2] px-4 py-2 text-xs font-semibold text-[#1f3a28] shadow-sm hover:bg-[#faf3f0] transition"
+            >
+              Instagram Generator
+            </Link>
             <Link
               href="/admin/prayers/new"
               className="rounded-xl bg-[#2d5a3d] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#1f3a28] transition"
