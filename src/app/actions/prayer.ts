@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { db } from "~/server/db";
 import { revalidatePath } from "next/cache";
@@ -26,9 +26,27 @@ export async function savePrayerAction(data: {
       categoryId = newCat.id;
     }
 
+    // Extract base situation name and ensure a Situation record exists
+    const baseSituationTitle = data.title.split(/ [—–-] /)[0]?.trim() ?? data.title;
+    const situationSlug = baseSituationTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+    const situation = (await db.situation.findFirst({
+      where: {
+        categoryId,
+        name: baseSituationTitle,
+      },
+    })) ?? (await db.situation.create({
+      data: {
+        name: baseSituationTitle,
+        slug: situationSlug,
+        categoryId,
+        sortOrder: 0,
+      },
+    }));
+
     if (data.id) {
       // If editing, keep the original title if they didn't change the base situation
-      const baseOriginal = data.originalTitle?.split(/ [-—] /)[0]?.trim();
+      const baseOriginal = data.originalTitle?.split(/ [—–-] /)[0]?.trim();
       const finalUpdateTitle = (baseOriginal === data.title) ? data.originalTitle : data.title;
 
       await db.prayer.update({
@@ -37,20 +55,19 @@ export async function savePrayerAction(data: {
           title: finalUpdateTitle ?? data.title,
           body: data.body,
           categoryId,
+          situationId: situation.id,
         },
       });
     } else {
-      // If creating new, auto-append the correct number (e.g. " — Prayer 6")
+      // If creating new, auto-append the correct number
       const existingCount = await db.prayer.count({
         where: {
           categoryId,
-          title: { startsWith: data.title },
+          situationId: situation.id,
         },
       });
 
-      const finalTitle = existingCount > 0 
-        ? `${data.title} — Prayer ${existingCount + 1}` 
-        : `${data.title} — Prayer 1`;
+      const finalTitle = `${baseSituationTitle} — Prayer ${existingCount + 1}`;
 
       const baseSlug = finalTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-");
       const uniqueSlug = `${baseSlug}-${Date.now().toString().slice(-4)}`;
@@ -60,6 +77,7 @@ export async function savePrayerAction(data: {
           title: finalTitle,
           body: data.body,
           categoryId,
+          situationId: situation.id,
           slug: uniqueSlug,
           isPublished: true,
           isFeatured: false,
@@ -70,6 +88,7 @@ export async function savePrayerAction(data: {
     revalidatePath("/");
     revalidatePath("/admin");
     revalidatePath("/dashboard");
+    revalidatePath("/categories");
     return { success: true };
   } catch (error) {
     console.error("Save prayer error:", error);
