@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { savePrayerAction } from "~/app/actions/prayer";
 import { getSituationsForCategory } from "~/lib/situations";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2, CheckCircle2 } from "lucide-react";
 
 type Category = { id: string; name: string; slug?: string };
 type Prayer = { id: string; title: string; categoryId: string; body: string };
@@ -25,27 +25,28 @@ export function PrayerForm({
   const [newCategoryName, setNewCategoryName] = useState("");
   const [isAddingCategory, setIsAddingCategory] = useState(false);
 
-  const initialCleanTitle = initialData?.title?.split(/ [-—] /)[0]?.trim() ?? "";
+  const initialCleanTitle = initialData?.title?.split(/ [—–-] /)[0]?.trim() ?? "";
   const [title, setTitle] = useState(initialCleanTitle);
   const [newSituationName, setNewSituationName] = useState("");
 
   const [body, setBody] = useState(initialData?.body ?? "");
   const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
   const selectedCategory = categories.find((c) => c.id === categoryId);
   const defaultList = selectedCategory ? getSituationsForCategory(selectedCategory) : [];
 
   const existingDbSituations = prayers
     .filter((p) => p.categoryId === categoryId)
-    .map((p) => p.title.split(/ [-—] /)[0]?.trim())
+    .map((p) => p.title.split(/ [—–-] /)[0]?.trim())
     .filter(Boolean) as string[];
 
-  // Keep the exact dashboard order
   const allSituations = Array.from(new Set([...defaultList, ...existingDbSituations]));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccessMsg("");
 
     const finalCategoryId = isAddingCategory ? "NEW" : categoryId;
     const finalTitle = newSituationName.trim() ? newSituationName.trim() : title;
@@ -76,7 +77,11 @@ export function PrayerForm({
       });
 
       if (res.success) {
-        router.push("/admin");
+        setSuccessMsg(initialData ? "Changes saved successfully!" : "Devotional published successfully! You can add another or return to admin.");
+        setBody("");
+        if (initialData) {
+          router.push("/admin");
+        }
         router.refresh();
       } else {
         setError(res.error ?? "Failed to save prayer.");
@@ -89,6 +94,13 @@ export function PrayerForm({
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-800">
           {error}
+        </div>
+      )}
+
+      {successMsg && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-semibold text-emerald-800 flex items-center space-x-2">
+          <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+          <span>{successMsg}</span>
         </div>
       )}
 
@@ -169,10 +181,9 @@ export function PrayerForm({
                 : "Select a category first..."}
             </option>
             {allSituations.map((sit) => {
-              // Exact string equality match prevents "Prayer for Forgiveness" from capturing "Prayer for Forgiveness of Sins"
               const count = prayers.filter((p) => {
                 if (p.categoryId !== categoryId) return false;
-                const base = p.title.split(/ [-—] /)[0]?.trim();
+                const base = p.title.split(/ [—–-] /)[0]?.trim();
                 return base === sit;
               }).length;
 
