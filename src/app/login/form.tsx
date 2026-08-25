@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
@@ -95,7 +95,7 @@ export function LoginForm() {
           >
             <p className="font-bold text-[#1f3a28]">Sanctuary Space Agreement</p>
             <p>
-              Welcome to Sanctuary. By accessing our platform, you agree to engage in reverence, respect, and peaceful reflection. Your personal prayer data, streaks, and saved devotions are securely maintained in accordance with our privacy practices.
+              Welcome to Sanctuary. By accessing our platform, you agree to engage in reverence, respect, and peaceful reflection. Your personal prayer data and saved devotions are securely maintained in accordance with our privacy practices.
             </p>
             <p>
               Grace over perfection guides our community. Please maintain confidentiality, respect fellow believers, and use this space strictly for personal and communal spiritual edification.
