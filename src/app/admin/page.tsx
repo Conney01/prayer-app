@@ -10,7 +10,7 @@ export default async function AdminPage() {
   const session = await auth();
 
   if (!session?.user?.id || session.user.role !== "ADMIN") {
-    redirect("/dashboard");
+    redirect("/");
   }
 
   // Fetch management data in parallel (excluding donations)

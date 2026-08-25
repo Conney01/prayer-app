@@ -6,14 +6,12 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // 1. Fetch the user's session securely on the server
   const session = await auth();
 
-  // 2. The Master Lock: If they aren't logged in, or aren't an ADMIN, kick them out
+  // The Master Lock: Kick them all the way out to the public landing page
   if (!session?.user?.id || session.user.role !== "ADMIN") {
-    redirect("/dashboard");
+    redirect("/");
   }
 
-  // 3. If they are an ADMIN, let them see the page
   return <>{children}</>;
 }
