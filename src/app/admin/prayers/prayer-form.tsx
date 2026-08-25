@@ -4,13 +4,13 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { savePrayerAction } from "~/app/actions/prayer";
 import { getSituationsForCategory } from "~/lib/situations";
-import { Loader2, Plus, Trash2, CheckCircle2 } from "lucide-react";
+import { Loader2, Plus, CheckCircle2 } from "lucide-react";
 
 type Category = { id: string; name: string; slug?: string };
 type Prayer = { id: string; title: string; categoryId: string; body: string };
 
 export function PrayerForm({
-  categories,
+  categories: initialCategories,
   prayers,
   initialData,
 }: {
@@ -21,19 +21,20 @@ export function PrayerForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
+  const [categoriesList, setCategoriesList] = useState<Category[]>(initialCategories);
   const [categoryId, setCategoryId] = useState(initialData?.categoryId ?? "");
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [isAddingCategory, setIsAddingCategory] = useState(false);
 
   const initialCleanTitle = initialData?.title?.split(/ [—–-] /)[0]?.trim() ?? "";
   const [title, setTitle] = useState(initialCleanTitle);
   const [newSituationName, setNewSituationName] = useState("");
+  const [customSituationsList, setCustomSituationsList] = useState<string[]>([]);
 
   const [body, setBody] = useState(initialData?.body ?? "");
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  const selectedCategory = categories.find((c) => c.id === categoryId);
+  const selectedCategory = categoriesList.find((c) => c.id === categoryId);
   const defaultList = selectedCategory ? getSituationsForCategory(selectedCategory) : [];
 
   const existingDbSituations = prayers
@@ -41,27 +42,45 @@ export function PrayerForm({
     .map((p) => p.title.split(/ [—–-] /)[0]?.trim())
     .filter(Boolean) as string[];
 
-  const allSituations = Array.from(new Set([...defaultList, ...existingDbSituations]));
+  const allSituations = Array.from(new Set([...defaultList, ...existingDbSituations, ...customSituationsList]));
+
+  const handleAddCustomCategory = () => {
+    const trimmed = newCategoryName.trim();
+    if (!trimmed) return;
+    const tempId = `temp-${Date.now()}`;
+    const newCat: Category = { id: tempId, name: trimmed, slug: trimmed.toLowerCase().replace(/[^a-z0-9]+/g, "-") };
+    setCategoriesList([...categoriesList, newCat]);
+    setCategoryId(tempId);
+    setNewCategoryName("");
+  };
+
+  const handleAddCustomSituation = () => {
+    const trimmed = newSituationName.trim();
+    if (!trimmed) return;
+    if (!allSituations.includes(trimmed)) {
+      setCustomSituationsList([...customSituationsList, trimmed]);
+    }
+    setTitle(trimmed);
+    setNewSituationName("");
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccessMsg("");
 
-    const finalCatName = newCategoryName.trim();
-    const finalSitName = newSituationName.trim();
-
-    const resolvedCategoryId = finalCatName ? "" : categoryId;
-    const resolvedNewCatName = finalCatName ? finalCatName : (isAddingCategory ? newCategoryName : undefined);
-    const resolvedTitle = finalSitName ? finalSitName : title;
+    const activeCat = categoriesList.find((c) => c.id === categoryId);
+    const resolvedCategoryId = (activeCat?.id && !activeCat.id.startsWith("temp-")) ? activeCat.id : "";
+    const resolvedNewCatName = activeCat?.id?.startsWith("temp-") ? activeCat.name : (newCategoryName.trim() || undefined);
+    const resolvedTitle = title.trim();
 
     if (!resolvedCategoryId && !resolvedNewCatName) {
-      setError("Please select or enter a category.");
+      setError("Please select or add a category.");
       return;
     }
 
     if (!resolvedTitle) {
-      setError("Please select or enter a situation.");
+      setError("Please select or add a situation.");
       return;
     }
 
@@ -83,6 +102,7 @@ export function PrayerForm({
       if (res.success) {
         setSuccessMsg(initialData ? "Changes saved successfully!" : "Devotional published successfully! You can add another or return to admin.");
         setBody("");
+        setTitle("");
         setNewSituationName("");
         if (initialData) {
           router.push("/admin");
@@ -123,11 +143,10 @@ export function PrayerForm({
               setNewCategoryName("");
               setTitle("");
             }}
-            disabled={Boolean(newCategoryName.trim())}
-            className="w-full rounded-xl border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none disabled:opacity-50"
+            className="w-full rounded-xl border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none"
           >
             <option value="">Select an existing category...</option>
-            {categories.map((c) => (
+            {categoriesList.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
@@ -137,21 +156,18 @@ export function PrayerForm({
               type="text"
               placeholder="Or enter new custom category..."
               value={newCategoryName}
-              onChange={(e) => {
-                setNewCategoryName(e.target.value);
-                if (e.target.value.trim()) setCategoryId("");
-              }}
+              onChange={(e) => setNewCategoryName(e.target.value)}
               className="w-full rounded-xl border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none"
             />
-            {newCategoryName && (
-              <button
-                type="button"
-                onClick={() => setNewCategoryName("")}
-                className="p-2.5 rounded-xl border border-[#eedad2] bg-white text-[#6b635e] hover:text-red-500 transition shadow-xs"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleAddCustomCategory}
+              disabled={!newCategoryName.trim()}
+              className="inline-flex items-center space-x-1 rounded-xl bg-[#2d5a3d] text-white px-4 py-2.5 text-xs font-semibold hover:bg-[#1f3a28] transition disabled:opacity-50 flex-shrink-0"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span>Add</span>
+            </button>
           </div>
         </div>
 
@@ -167,11 +183,11 @@ export function PrayerForm({
               setTitle(e.target.value);
               setNewSituationName("");
             }}
-            disabled={(!categoryId && !newCategoryName.trim()) || Boolean(newSituationName.trim())}
+            disabled={!categoryId}
             className="w-full rounded-xl border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none disabled:opacity-50"
           >
             <option value="">
-              {categoryId || newCategoryName.trim()
+              {categoryId
                 ? `Select a situation (${allSituations.length} available)...`
                 : "Select a category first..."}
             </option>
@@ -195,22 +211,19 @@ export function PrayerForm({
               type="text"
               placeholder="Or enter new custom situation..."
               value={newSituationName}
-              onChange={(e) => {
-                setNewSituationName(e.target.value);
-                if (e.target.value.trim()) setTitle("");
-              }}
-              disabled={!categoryId && !newCategoryName.trim()}
+              onChange={(e) => setNewSituationName(e.target.value)}
+              disabled={!categoryId}
               className="w-full rounded-xl border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none disabled:opacity-50"
             />
-            {newSituationName && (
-              <button
-                type="button"
-                onClick={() => setNewSituationName("")}
-                className="p-2.5 rounded-xl border border-[#eedad2] bg-white text-[#6b635e] hover:text-red-500 transition shadow-xs"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleAddCustomSituation}
+              disabled={!newSituationName.trim() || !categoryId}
+              className="inline-flex items-center space-x-1 rounded-xl bg-[#2d5a3d] text-white px-4 py-2.5 text-xs font-semibold hover:bg-[#1f3a28] transition disabled:opacity-50 flex-shrink-0"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span>Add</span>
+            </button>
           </div>
         </div>
       </div>
