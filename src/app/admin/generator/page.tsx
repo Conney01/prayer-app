@@ -5,20 +5,33 @@ import html2canvas from "html2canvas";
 import { Download } from "lucide-react";
 
 export default function PostGenerator() {
-  const [content, setContent] = useState("Quiet stillness in God's constant presence.");
+  const [content, setContent] = useState("God knows what you're praying for. Trust Him even when the answer takes time. 🤍");
   const cardRef = useRef<HTMLDivElement>(null);
 
   const downloadImage = async () => {
     if (!cardRef.current) return;
     
-    // Scale by 3 for crisp, high-definition output suitable for Instagram
-    const canvas = await html2canvas(cardRef.current, { scale: 3, useCORS: true });
-    const image = canvas.toDataURL("image/png");
-    
-    const link = document.createElement("a");
-    link.href = image;
-    link.download = "sanctuary-post.png";
-    link.click();
+    try {
+      // Scale by 3 for crisp, high-definition output suitable for Instagram
+      const canvas = await html2canvas(cardRef.current, { 
+        scale: 3, 
+        useCORS: true,
+        backgroundColor: null 
+      });
+      
+      const image = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = image;
+      link.download = "sanctuary-post.png";
+      
+      // Append to body, click, and remove (fixes the download block)
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Failed to generate image:", error);
+      alert("Something went wrong generating the image. Check the console.");
+    }
   };
 
   return (
@@ -61,13 +74,13 @@ export default function PostGenerator() {
             <div className="h-14 w-14 rounded-full overflow-hidden bg-black shrink-0 border border-gray-100">
               <img
                 src="/logo.jpg" 
-                alt="Sanctuary Daily"
+                alt="Sanctuary"
                 className="h-full w-full object-cover"
               />
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-[#1f3a28] text-[16px] leading-tight">
-                Sanctuary Daily
+                Sanctuary
               </span>
               <span className="text-[#6b635e] text-[14px]">
                 @sanctuary.daily
