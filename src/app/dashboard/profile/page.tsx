@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { Bookmark, Calendar, Mail, ArrowLeft, Globe } from "lucide-react";
+import { Bookmark, Calendar, Mail, ArrowLeft, Globe, ShieldCheck } from "lucide-react";
 import { LogoutButton } from "~/components/logout-btn";
 
 export const dynamic = "force-dynamic";
@@ -80,6 +80,22 @@ export default async function ProfilePage() {
             </p>
           </div>
         </div>
+
+        {/* Admin Command Center Link (Only visible to Admins) */}
+        {session?.user?.role === "ADMIN" && (
+          <div className="rounded-3xl border border-[#eedad2] bg-white p-6 shadow-2xs space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-[#2d5a3d] text-center">
+              Curator Controls
+            </h3>
+            <Link
+              href="/admin"
+              className="flex items-center justify-center space-x-2 w-full rounded-xl bg-[#2d5a3d] py-3 text-xs font-semibold text-white hover:bg-[#1f3a28] transition shadow-2xs"
+            >
+              <ShieldCheck className="h-4 w-4" />
+              <span>Admin Command Center</span>
+            </Link>
+          </div>
+        )}
 
         {/* Reach Out & Connect Card */}
         <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-6 shadow-2xs space-y-4">
