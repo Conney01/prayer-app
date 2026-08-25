@@ -48,16 +48,20 @@ export function PrayerForm({
     setError("");
     setSuccessMsg("");
 
-    const finalCategoryId = isAddingCategory ? "NEW" : categoryId;
-    const finalTitle = newSituationName.trim() ? newSituationName.trim() : title;
+    const finalCatName = newCategoryName.trim();
+    const finalSitName = newSituationName.trim();
 
-    if (!finalCategoryId || (finalCategoryId === "NEW" && !newCategoryName.trim())) {
-      setError("Please select or add a category.");
+    const resolvedCategoryId = finalCatName ? "" : categoryId;
+    const resolvedNewCatName = finalCatName ? finalCatName : (isAddingCategory ? newCategoryName : undefined);
+    const resolvedTitle = finalSitName ? finalSitName : title;
+
+    if (!resolvedCategoryId && !resolvedNewCatName) {
+      setError("Please select or enter a category.");
       return;
     }
 
-    if (!finalTitle) {
-      setError("Please select or add a situation.");
+    if (!resolvedTitle) {
+      setError("Please select or enter a situation.");
       return;
     }
 
@@ -69,9 +73,9 @@ export function PrayerForm({
     startTransition(async () => {
       const res = await savePrayerAction({
         id: initialData?.id,
-        categoryId: finalCategoryId === "NEW" ? "" : finalCategoryId,
-        newCategoryName: finalCategoryId === "NEW" ? newCategoryName.trim() : undefined,
-        title: finalTitle,
+        categoryId: resolvedCategoryId,
+        newCategoryName: resolvedNewCatName,
+        title: resolvedTitle,
         body,
         originalTitle: initialData?.title,
       });
@@ -79,6 +83,7 @@ export function PrayerForm({
       if (res.success) {
         setSuccessMsg(initialData ? "Changes saved successfully!" : "Devotional published successfully! You can add another or return to admin.");
         setBody("");
+        setNewSituationName("");
         if (initialData) {
           router.push("/admin");
         }
@@ -107,57 +112,47 @@ export function PrayerForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-b border-[#eedad2]/60 pb-8">
         {/* 1. CATEGORY */}
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-[10px] font-bold uppercase tracking-wider text-[#1f3a28]">
-              1. Category *
-            </label>
-            {!isAddingCategory && (
-              <button
-                type="button"
-                onClick={() => setIsAddingCategory(true)}
-                className="text-[10px] font-bold text-[#2d5a3d] hover:underline flex items-center space-x-1"
-              >
-                <Plus className="h-3 w-3" />
-                <span>Add Category</span>
-              </button>
-            )}
-          </div>
+          <label className="text-[10px] font-bold uppercase tracking-wider text-[#1f3a28]">
+            1. Category *
+          </label>
 
-          {isAddingCategory ? (
-            <div className="flex items-center space-x-2">
-              <input
-                type="text"
-                placeholder="New category name..."
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-                className="w-full rounded-xl border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none"
-              />
+          <select
+            value={categoryId}
+            onChange={(e) => {
+              setCategoryId(e.target.value);
+              setNewCategoryName("");
+              setTitle("");
+            }}
+            disabled={Boolean(newCategoryName.trim())}
+            className="w-full rounded-xl border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none disabled:opacity-50"
+          >
+            <option value="">Select an existing category...</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+
+          <div className="flex items-center space-x-2 pt-1">
+            <input
+              type="text"
+              placeholder="Or enter new custom category..."
+              value={newCategoryName}
+              onChange={(e) => {
+                setNewCategoryName(e.target.value);
+                if (e.target.value.trim()) setCategoryId("");
+              }}
+              className="w-full rounded-xl border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none"
+            />
+            {newCategoryName && (
               <button
                 type="button"
-                onClick={() => {
-                  setIsAddingCategory(false);
-                  setNewCategoryName("");
-                }}
+                onClick={() => setNewCategoryName("")}
                 className="p-2.5 rounded-xl border border-[#eedad2] bg-white text-[#6b635e] hover:text-red-500 transition shadow-xs"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
-            </div>
-          ) : (
-            <select
-              value={categoryId}
-              onChange={(e) => {
-                setCategoryId(e.target.value);
-                setTitle("");
-              }}
-              className="w-full rounded-xl border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none"
-            >
-              <option value="">Select a category...</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-          )}
+            )}
+          </div>
         </div>
 
         {/* 2. SITUATION */}
@@ -172,11 +167,11 @@ export function PrayerForm({
               setTitle(e.target.value);
               setNewSituationName("");
             }}
-            disabled={!categoryId && !isAddingCategory}
+            disabled={(!categoryId && !newCategoryName.trim()) || Boolean(newSituationName.trim())}
             className="w-full rounded-xl border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none disabled:opacity-50"
           >
             <option value="">
-              {categoryId
+              {categoryId || newCategoryName.trim()
                 ? `Select a situation (${allSituations.length} available)...`
                 : "Select a category first..."}
             </option>
@@ -195,26 +190,27 @@ export function PrayerForm({
             })}
           </select>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 pt-1">
             <input
               type="text"
               placeholder="Or enter new custom situation..."
               value={newSituationName}
               onChange={(e) => {
                 setNewSituationName(e.target.value);
-                setTitle("");
+                if (e.target.value.trim()) setTitle("");
               }}
-              disabled={!categoryId && !isAddingCategory}
+              disabled={!categoryId && !newCategoryName.trim()}
               className="w-full rounded-xl border border-[#eedad2] bg-white px-3.5 py-2.5 text-xs text-[#1f3a28] focus:border-[#2d5a3d] focus:outline-none disabled:opacity-50"
             />
-            <button
-              type="button"
-              onClick={() => setNewSituationName("")}
-              disabled={!newSituationName}
-              className="p-2.5 rounded-xl border border-[#eedad2] bg-white text-[#6b635e] hover:text-red-500 transition shadow-xs disabled:opacity-50"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
+            {newSituationName && (
+              <button
+                type="button"
+                onClick={() => setNewSituationName("")}
+                className="p-2.5 rounded-xl border border-[#eedad2] bg-white text-[#6b635e] hover:text-red-500 transition shadow-xs"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>
