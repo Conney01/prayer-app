@@ -1,10 +1,11 @@
 ﻿import Link from "next/link";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
-import { Sparkles, BookOpen, ArrowRight, Heart, Bookmark, Shield, Sun, User, Calendar } from "lucide-react";
+import { Sparkles, Heart, Bookmark, Shield, User, Calendar } from "lucide-react";
 import { completePrayerAction } from "~/app/actions/prayer-interactions";
 import { Footer } from "~/components/footer";
 import { LogoutButton } from "~/components/logout-btn";
+import { PrayerSearch } from "./prayer-search";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,6 @@ export default async function DashboardPage() {
   const oneDay = 1000 * 60 * 60 * 24;
   const dayOfYear = Math.floor(diff / oneDay);
 
-  // Expanded daily rotating banner messages
   const messages = [
     "A quiet moment to pause, pray, and be present with God.",
     "Slow down. Breathe. Make room for God.",
@@ -42,7 +42,6 @@ export default async function DashboardPage() {
   ];
   const todayMsg = messages[(dayOfYear - 1) % messages.length];
 
-  // Expanded rich daily reflections for scripture & meditation
   const dailyReflections = [
     {
       verse: "Rejoice always, pray continually, give thanks in all circumstances; for this is God's will for you in Christ Jesus.",
@@ -117,7 +116,6 @@ export default async function DashboardPage() {
     orderBy: { sortOrder: "asc" },
   });
 
-  // Pin "Daily Prayers" always to the top (Collection 01), other categories follow
   const categories = [...rawCategories].sort((a, b) => {
     const aDaily = a.name.toLowerCase().includes("daily prayer");
     const bDaily = b.name.toLowerCase().includes("daily prayer");
@@ -142,7 +140,6 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Hidden on mobile, visible on desktop/PC */}
           <div className="hidden sm:flex items-center flex-wrap gap-2">
             {userRole === "ADMIN" && (
               <Link
@@ -196,7 +193,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* 7-Day Calendar Bar (Sun - Sat) — Days in Stillness */}
+        {/* 7-Day Calendar Bar */}
         <div className="rounded-3xl border border-[#eedad2] bg-[#faf3f0] p-6 sm:p-8 shadow-2xs space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -277,9 +274,9 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Prayer Collections Section */}
+        {/* Prayer Collections & Live Search Section */}
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h2 className="font-serif text-2xl font-bold text-[#1f3a28]">
                 Prayer Collections ({categories.length})
@@ -290,53 +287,8 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {categories.map((category, idx) => {
-              const situationCount = category.situations.length;
-              const prayerCount = category.prayers.length;
-              const collectionNum = String(idx + 1).padStart(2, "0");
-              const isDailyPrayers = category.name.toLowerCase().includes("daily prayer");
-
-              return (
-                <div
-                  key={category.id}
-                  className={`rounded-3xl p-8 transition space-y-6 flex flex-col justify-between shadow-2xs ${
-                    isDailyPrayers
-                      ? "border-2 border-[#d4907a] bg-white shadow-sm ring-4 ring-[#d4907a]/10"
-                      : "border border-[#eedad2] bg-[#faf3f0] hover:bg-white"
-                  }`}
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isDailyPrayers ? "text-[#d4907a] font-extrabold" : "text-[#d4907a]"}`}>
-                        {isDailyPrayers ? "★ Featured Daily Routine" : `Collection ${collectionNum}`}
-                      </span>
-                      <span className="text-xs text-[#6b635e] font-medium">
-                        {situationCount} {situationCount === 1 ? "Situation" : "Situations"} • {prayerCount} {prayerCount === 1 ? "Prayer" : "Prayers"}
-                      </span>
-                    </div>
-                    <h3 className="font-serif text-xl font-bold text-[#1f3a28] flex items-center space-x-2">
-                      {isDailyPrayers && <Sun className="h-5 w-5 text-[#d4907a] inline mr-1" />}
-                      <span>{category.name}</span>
-                    </h3>
-                  </div>
-
-                  <div className="pt-2 border-t border-[#eedad2]/60 flex items-center justify-between">
-                    <Link
-                      href={`/categories/${category.slug}`}
-                      className={`inline-flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider transition group ${
-                        isDailyPrayers ? "text-[#d4907a] hover:text-[#1f3a28]" : "text-[#1f3a28] hover:text-[#d4907a]"
-                      }`}
-                    >
-                      <span>{isDailyPrayers ? "Begin Daily Prayer" : "Enter Space"}</span>
-                      <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
-                    </Link>
-                    {isDailyPrayers ? <Sun className="h-4 w-4 text-[#d4907a]" /> : <BookOpen className="h-4 w-4 text-[#6b635e]" />}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          {/* Live Search Component integrated right here */}
+          <PrayerSearch categories={categories} />
         </div>
 
       </div>
