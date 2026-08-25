@@ -1,23 +1,27 @@
 ﻿"use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import html2canvas from "html2canvas";
 import { Download } from "lucide-react";
 
 export default function PostGenerator() {
   const [content, setContent] = useState("God knows what you're praying for. Trust Him even when the answer takes time. 🤍");
   const cardRef = useRef<HTMLDivElement>(null);
+  const [logoUrl, setLogoUrl] = useState("/logo.jpg");
+
+  // Ensure html2canvas gets an absolute URL to avoid CORS/Tainting issues
+  useEffect(() => {
+    setLogoUrl(window.location.origin + "/logo.jpg");
+  }, []);
 
   const downloadImage = async () => {
     if (!cardRef.current) return;
     
     try {
-      // Added allowTaint to fix Vercel CDN CORS issues
       const canvas = await html2canvas(cardRef.current, { 
         scale: 3, 
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: null 
+        useCORS: true, // Only use standard CORS, no tainting
+        backgroundColor: "#ffffff" // Explicit white background prevents rendering crashes
       });
       
       const image = canvas.toDataURL("image/png");
@@ -73,9 +77,8 @@ export default function PostGenerator() {
           <div className="flex items-center space-x-3">
             <div className="h-14 w-14 rounded-full overflow-hidden bg-black shrink-0 border border-gray-100">
               <img
-                src="/logo.jpg" 
+                src={logoUrl} 
                 alt="Sanctuary"
-                crossOrigin="anonymous" 
                 className="h-full w-full object-cover"
               />
             </div>
