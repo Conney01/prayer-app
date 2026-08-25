@@ -9,9 +9,18 @@ export default function PostGenerator() {
   const cardRef = useRef<HTMLDivElement>(null);
   const [logoUrl, setLogoUrl] = useState("/logo.jpg");
 
-  // Ensure html2canvas gets an absolute URL to avoid CORS/Tainting issues
+  // The Ultimate CORS Bypass: Convert the logo file into a raw Base64 data string
   useEffect(() => {
-    setLogoUrl(window.location.origin + "/logo.jpg");
+    fetch('/logo.jpg')
+      .then(res => res.blob())
+      .then(blob => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (reader.result) setLogoUrl(reader.result as string);
+        };
+        reader.readAsDataURL(blob);
+      })
+      .catch(err => console.error("Error converting logo to base64:", err));
   }, []);
 
   const downloadImage = async () => {
@@ -20,8 +29,8 @@ export default function PostGenerator() {
     try {
       const canvas = await html2canvas(cardRef.current, { 
         scale: 3, 
-        useCORS: true, // Only use standard CORS, no tainting
-        backgroundColor: "#ffffff" // Explicit white background prevents rendering crashes
+        useCORS: true, 
+        backgroundColor: "#ffffff" // Prevents transparent black box bugs
       });
       
       const image = canvas.toDataURL("image/png");
