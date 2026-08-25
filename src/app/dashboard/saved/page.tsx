@@ -1,10 +1,30 @@
 ﻿import Link from 'next/link';
-import { Bookmark, ArrowLeft, ArrowRight, Heart } from 'lucide-react';
+import { Bookmark, ArrowLeft, ArrowRight, Trash2 } from 'lucide-react';
 import { auth } from '~/server/auth';
 import { db } from '~/server/db';
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 
 export const dynamic = "force-dynamic";
+
+// Server Action to remove a saved prayer
+async function removeSavedPrayer(formData: FormData) {
+  "use server";
+  const session = await auth();
+  if (!session?.user?.id) return;
+
+  const rawPrayerId = formData.get("prayerId");
+  if (!rawPrayerId || typeof rawPrayerId !== "string") return;
+
+  await db.savedPrayer.deleteMany({
+    where: {
+      userId: session.user.id,
+      prayerId: rawPrayerId,
+    },
+  });
+
+  revalidatePath("/dashboard/saved");
+}
 
 export default async function SavedPrayersPage() {
   const session = await auth();
@@ -68,12 +88,11 @@ export default async function SavedPrayersPage() {
 
               <div className="grid grid-cols-1 gap-4">
                 {savedPrayersRecords.map(({ prayer }) => (
-                  <Link
+                  <div
                     key={prayer.id}
-                    href={`/prayers/${prayer.slug}`}
                     className="group flex flex-col sm:flex-row sm:items-center justify-between border border-[#eedad2] bg-[#faf3f0] p-6 rounded-3xl transition-all duration-300 hover:border-[#2d5a3d] hover:shadow-sm gap-4"
                   >
-                    <div className="space-y-1.5">
+                    <Link href={`/prayers/${prayer.slug}`} className="space-y-1.5 flex-1">
                       <div className="flex items-center space-x-2">
                         <span className="text-[10px] uppercase tracking-[0.2em] font-medium text-[#d4907a]">
                           {prayer.category.name} {prayer.situation ? `• ${prayer.situation.name}` : ""}
@@ -85,16 +104,31 @@ export default async function SavedPrayersPage() {
                       <p className="text-xs text-[#6b635e] line-clamp-2 max-w-2xl leading-relaxed">
                         {prayer.body}
                       </p>
-                    </div>
+                    </Link>
 
                     <div className="flex items-center justify-between sm:justify-end space-x-4 pt-3 sm:pt-0 border-t sm:border-t-0 border-[#eedad2]">
-                      <Heart className="h-4 w-4 fill-[#d4907a] text-[#d4907a]" />
-                      <div className="flex items-center text-xs uppercase tracking-[0.15em] text-[#2d5a3d] font-medium whitespace-nowrap">
+                      {/* Remove Button Form */}
+                      <form action={removeSavedPrayer}>
+                        <input type="hidden" name="prayerId" value={prayer.id} />
+                        <button
+                          type="submit"
+                          title="Remove from saved"
+                          className="flex items-center space-x-1.5 text-xs text-[#d4907a] hover:text-red-700 bg-white border border-[#eedad2] px-3 py-2 rounded-xl transition shadow-2xs"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          <span className="font-medium">Remove</span>
+                        </button>
+                      </form>
+
+                      <Link
+                        href={`/prayers/${prayer.slug}`}
+                        className="flex items-center text-xs uppercase tracking-[0.15em] text-[#2d5a3d] font-medium whitespace-nowrap bg-white border border-[#eedad2] px-4 py-2 rounded-xl hover:bg-[#2d5a3d] hover:text-white transition shadow-2xs"
+                      >
                         <span>Pray</span>
                         <ArrowRight className="ml-1.5 h-3.5 w-3.5 transition group-hover:translate-x-1" />
-                      </div>
+                      </Link>
                     </div>
-                  </Link>
+                  </div>
                 ))}
               </div>
             </div>
@@ -110,15 +144,15 @@ export default async function SavedPrayersPage() {
         </a>
         <a href="/dashboard/saved" className="flex-1 py-3 flex flex-col items-center justify-center text-[11px] font-medium text-emerald-900 active:scale-95 transition-transform duration-100">
           <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-          Saved
+          Saved Prayers
         </a>
         <a href="/support" className="flex-1 py-3 flex flex-col items-center justify-center text-[11px] font-medium text-emerald-800/80 hover:text-emerald-900 active:scale-95 transition-transform duration-100">
           <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
           Support
         </a>
-        <a href="/login" className="flex-1 py-3 flex flex-col items-center justify-center text-[11px] font-medium text-red-700/80 hover:text-red-900 active:scale-95 transition-transform duration-100">
-          <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-          Logout
+        <a href="/dashboard/profile" className="flex-1 py-3 flex flex-col items-center justify-center text-[11px] font-medium text-emerald-800/80 hover:text-emerald-900 active:scale-95 transition-transform duration-100">
+          <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          Profile
         </a>
       </nav>
     </div>
