@@ -85,8 +85,8 @@ export default function PostGenerator() {
           </div>
 
           <div className="mt-6">
-            {/* The text classes are updated here for a unique, smaller, elegant look */}
-            <p className="font-serif italic text-xl sm:text-2xl text-[#1f3a28] leading-[1.6] tracking-wide whitespace-pre-wrap">
+            {/* Swapped to a clean, smaller sans-serif to match the classic social media style */}
+            <p className="text-[17px] sm:text-lg text-[#1f3a28] leading-[1.4] whitespace-pre-wrap">
               {content}
             </p>
           </div>
