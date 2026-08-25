@@ -12,11 +12,9 @@ export default function PostGenerator() {
     if (!cardRef.current) return;
     
     try {
-      // Using modern html-to-image engine
       const dataUrl = await toPng(cardRef.current, { 
         pixelRatio: 3, 
         backgroundColor: "#ffffff",
-        // Force the image to load properly before capture
         skipFonts: false
       });
       
@@ -29,7 +27,6 @@ export default function PostGenerator() {
       document.body.removeChild(link);
     } catch (error) {
       console.error("Failed to generate image:", error);
-      // TypeScript strict-safe error handling
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       alert(`Error: ${errorMessage}`);
     }
@@ -88,7 +85,8 @@ export default function PostGenerator() {
           </div>
 
           <div className="mt-6">
-            <p className="text-[24px] sm:text-[28px] text-[#1f3a28] leading-[1.3] tracking-tight whitespace-pre-wrap">
+            {/* The text classes are updated here for a unique, smaller, elegant look */}
+            <p className="font-serif italic text-xl sm:text-2xl text-[#1f3a28] leading-[1.6] tracking-wide whitespace-pre-wrap">
               {content}
             </p>
           </div>
