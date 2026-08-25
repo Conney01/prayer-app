@@ -12,10 +12,11 @@ export default function PostGenerator() {
     if (!cardRef.current) return;
     
     try {
-      // Scale by 3 for crisp, high-definition output suitable for Instagram
+      // Added allowTaint to fix Vercel CDN CORS issues
       const canvas = await html2canvas(cardRef.current, { 
         scale: 3, 
         useCORS: true,
+        allowTaint: true,
         backgroundColor: null 
       });
       
@@ -24,7 +25,6 @@ export default function PostGenerator() {
       link.href = image;
       link.download = "sanctuary-post.png";
       
-      // Append to body, click, and remove (fixes the download block)
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -75,6 +75,7 @@ export default function PostGenerator() {
               <img
                 src="/logo.jpg" 
                 alt="Sanctuary"
+                crossOrigin="anonymous" 
                 className="h-full w-full object-cover"
               />
             </div>
