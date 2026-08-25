@@ -1,41 +1,27 @@
 ﻿"use client";
 
-import { useState, useRef, useEffect } from "react";
-import html2canvas from "html2canvas";
+import { useState, useRef } from "react";
+import { toPng } from "html-to-image";
 import { Download } from "lucide-react";
 
 export default function PostGenerator() {
   const [content, setContent] = useState("God knows what you're praying for. Trust Him even when the answer takes time. 🤍");
   const cardRef = useRef<HTMLDivElement>(null);
-  const [logoUrl, setLogoUrl] = useState("/logo.jpg");
-
-  // The Ultimate CORS Bypass: Convert the logo file into a raw Base64 data string
-  useEffect(() => {
-    fetch('/logo.jpg')
-      .then(res => res.blob())
-      .then(blob => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          if (reader.result) setLogoUrl(reader.result as string);
-        };
-        reader.readAsDataURL(blob);
-      })
-      .catch(err => console.error("Error converting logo to base64:", err));
-  }, []);
 
   const downloadImage = async () => {
     if (!cardRef.current) return;
     
     try {
-      const canvas = await html2canvas(cardRef.current, { 
-        scale: 3, 
-        useCORS: true, 
-        backgroundColor: "#ffffff" // Prevents transparent black box bugs
+      // Using modern html-to-image engine
+      const dataUrl = await toPng(cardRef.current, { 
+        pixelRatio: 3, 
+        backgroundColor: "#ffffff",
+        // Force the image to load properly before capture
+        skipFonts: false
       });
       
-      const image = canvas.toDataURL("image/png");
       const link = document.createElement("a");
-      link.href = image;
+      link.href = dataUrl;
       link.download = "sanctuary-post.png";
       
       document.body.appendChild(link);
@@ -43,7 +29,9 @@ export default function PostGenerator() {
       document.body.removeChild(link);
     } catch (error) {
       console.error("Failed to generate image:", error);
-      alert("Something went wrong generating the image. Check the console.");
+      // TypeScript strict-safe error handling
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      alert(`Error: ${errorMessage}`);
     }
   };
 
@@ -55,7 +43,6 @@ export default function PostGenerator() {
         <p className="text-[#6b635e] text-sm">Create downloadable Instagram graphics.</p>
       </div>
 
-      {/* Editor Controls */}
       <div className="w-full max-w-xl bg-white p-6 rounded-2xl shadow-sm border border-[#eedad2] space-y-4">
         <label className="block text-xs font-bold uppercase tracking-wider text-[#6b635e]">
           Post Content
@@ -76,7 +63,6 @@ export default function PostGenerator() {
         </button>
       </div>
 
-      {/* Live Preview Card */}
       <div className="w-full max-w-xl border border-dashed border-[#d4907a] p-4 bg-gray-50 rounded-xl relative overflow-hidden">
         <span className="absolute -top-0 left-4 bg-[#fdf0ec] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#d4907a] rounded-b-md z-10">
           Live Preview
@@ -86,7 +72,7 @@ export default function PostGenerator() {
           <div className="flex items-center space-x-3">
             <div className="h-14 w-14 rounded-full overflow-hidden bg-black shrink-0 border border-gray-100">
               <img
-                src={logoUrl} 
+                src="/logo.jpg" 
                 alt="Sanctuary"
                 className="h-full w-full object-cover"
               />
