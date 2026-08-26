@@ -3,11 +3,11 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { savePrayerAction } from "~/app/actions/prayer";
-import { getSituationsForCategory } from "~/lib/situations";
 import { Loader2, Plus, CheckCircle2 } from "lucide-react";
 
-type Category = { id: string; name: string; slug?: string };
-type Prayer = { id: string; title: string; categoryId: string; body: string };
+type Situation = { id: string; name: string };
+type Category = { id: string; name: string; slug?: string; situations?: Situation[] };
+type Prayer = { id: string; title: string; categoryId: string; body: string; situationId?: string | null };
 
 export function PrayerForm({
   categories: initialCategories,
@@ -35,20 +35,20 @@ export function PrayerForm({
   const [successMsg, setSuccessMsg] = useState("");
 
   const selectedCategory = categoriesList.find((c) => c.id === categoryId);
-  const defaultList = selectedCategory ? getSituationsForCategory(selectedCategory) : [];
+  const dbSituationsList = selectedCategory?.situations?.map((s) => s.name) ?? [];
 
   const existingDbSituations = prayers
     .filter((p) => p.categoryId === categoryId)
     .map((p) => p.title.split(/ [—–-] /)[0]?.trim())
     .filter(Boolean) as string[];
 
-  const allSituations = Array.from(new Set([...defaultList, ...existingDbSituations, ...customSituationsList]));
+  const allSituations = Array.from(new Set([...dbSituationsList, ...existingDbSituations, ...customSituationsList]));
 
   const handleAddCustomCategory = () => {
     const trimmed = newCategoryName.trim();
     if (!trimmed) return;
     const tempId = `temp-${Date.now()}`;
-    const newCat: Category = { id: tempId, name: trimmed, slug: trimmed.toLowerCase().replace(/[^a-z0-9]+/g, "-") };
+    const newCat: Category = { id: tempId, name: trimmed, slug: trimmed.toLowerCase().replace(/[^a-z0-9]+/g, "-"), situations: [] };
     setCategoriesList([...categoriesList, newCat]);
     setCategoryId(tempId);
     setNewCategoryName("");

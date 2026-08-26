@@ -1,4 +1,4 @@
-import { db } from "~/server/db";
+﻿import { db } from "~/server/db";
 import { PrayerForm } from "../prayer-form";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -7,8 +7,15 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "New Prayer | Sanctuary Admin" };
 
 export default async function NewPrayerPage() {
-  const categories = await db.category.findMany({ select: { id: true, name: true, slug: true }, orderBy: { sortOrder: "asc" } });
-  const prayers = await db.prayer.findMany({ select: { id: true, title: true, categoryId: true, body: true } });
+  const categories = await db.category.findMany({
+    include: {
+      situations: {
+        orderBy: { sortOrder: "asc" },
+      },
+    },
+    orderBy: { sortOrder: "asc" },
+  });
+  const prayers = await db.prayer.findMany({ select: { id: true, title: true, categoryId: true, body: true, situationId: true } });
 
   return (
     <div className="min-h-screen bg-[#fdf0ec] text-[#1f3a28] py-8 px-4 sm:px-8">
