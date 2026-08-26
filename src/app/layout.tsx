@@ -3,8 +3,28 @@ import "~/styles/globals.css";
 import { PwaRegister } from "~/components/pwa-register";
 
 export const metadata: Metadata = {
-  title: "Sanctuary — A Peaceful Space for Prayer",
-  description: "A thoughtfully curated digital prayer companion designed to nurture personal communion with God.",
+  title: "Sanctuary | Daily Stillness & Prayer",
+  description: "Create a personal space to save your favorite devotions, manage prayer rhythms, and find daily stillness. Grace over perfection.",
+  metadataBase: new URL("https://mysanctuary.live"),
+  openGraph: {
+    title: "Sanctuary | Daily Stillness & Prayer",
+    description: "A peaceful space for daily stillness and devotions.",
+    url: "https://mysanctuary.live",
+    siteName: "Sanctuary",
+    locale: "en_US",
+    type: "website",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [{ url: "/favicon.png", type: "image/png" }],
