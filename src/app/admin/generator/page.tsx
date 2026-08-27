@@ -65,28 +65,28 @@ export default function PostGenerator() {
           Live Preview
         </span>
         
-        <div ref={cardRef} className="w-full bg-white p-8 sm:p-10 mt-2 rounded-lg shadow-sm">
-          <div className="flex items-center space-x-3">
-            <div className="h-14 w-14 rounded-full overflow-hidden bg-black shrink-0 border border-gray-100">
+        {/* Compact, tightly aligned social media card layout */}
+        <div ref={cardRef} className="w-full bg-white p-5 mt-2 rounded-lg shadow-sm">
+          <div className="flex items-center space-x-2.5">
+            <div className="h-9 w-9 rounded-full overflow-hidden bg-black shrink-0 border border-gray-100">
               <img
                 src="/logo.jpg" 
                 alt="Sanctuary"
                 className="h-full w-full object-cover"
               />
             </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-[#1f3a28] text-[16px] leading-tight">
+            <div className="flex flex-col leading-tight">
+              <span className="font-bold text-[#1f3a28] text-[13px]">
                 Sanctuary
               </span>
-              <span className="text-[#6b635e] text-[14px]">
+              <span className="text-[#6b635e] text-[11px]">
                 @sanctuary.daily
               </span>
             </div>
           </div>
 
-          <div className="mt-6">
-            {/* Swapped to a clean, smaller sans-serif to match the classic social media style */}
-            <p className="text-[17px] sm:text-lg text-[#1f3a28] leading-[1.4] whitespace-pre-wrap">
+          <div className="mt-3.5">
+            <p className="text-[14px] text-[#1f3a28] leading-[1.35] whitespace-pre-wrap text-left font-sans">
               {content}
             </p>
           </div>
