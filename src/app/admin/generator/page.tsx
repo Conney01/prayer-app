@@ -66,11 +66,10 @@ export default function PostGenerator() {
           Live Preview
         </span>
         
-        {/* The Exact Meme Canvas: Fixed 600px width, massive padding, tiny fonts */}
+        {/* The Exact Meme Canvas: Fixed 600x600 Square, massive padding, tiny fonts */}
         <div className="flex justify-center min-w-max mt-6">
-          <div ref={cardRef} className="bg-white p-12 w-[600px] flex flex-col justify-center">
+          <div ref={cardRef} className="bg-white p-12 w-[600px] h-[600px] flex flex-col justify-center">
             
-            {/* Header: Avatar + Info (NO Verified Icon) */}
             <div className="flex items-center space-x-3">
               <div className="h-12 w-12 rounded-full overflow-hidden bg-gray-100 shrink-0 border border-gray-100">
                 <img
@@ -89,7 +88,6 @@ export default function PostGenerator() {
               </div>
             </div>
 
-            {/* Body Content */}
             <div className="mt-5">
               <p className="text-[17px] text-[#1f3a28] leading-[1.6] whitespace-pre-wrap text-left font-sans">
                 {content}
